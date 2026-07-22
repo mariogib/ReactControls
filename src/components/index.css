@@ -1,6 +1,7 @@
 @import "../theme/primitives.css";
 @import "./report.css";
 @import "./browseListControls.css";
+@import "./breadcrumb.css";
 
 .form-group {
 	margin-bottom: 1.25rem;

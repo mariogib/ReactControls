@@ -1,0 +1,77 @@
+.breadcrumb {
+  margin: 0 0 0.75rem;
+  min-width: 0;
+}
+
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.breadcrumb-separator {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  opacity: 0.65;
+  user-select: none;
+  pointer-events: none;
+}
+
+.breadcrumb-link,
+.breadcrumb-current,
+.breadcrumb-muted {
+  display: inline-block;
+  min-width: 0;
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadcrumb-link {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.breadcrumb-link:hover,
+.breadcrumb-link:focus-visible {
+  color: var(--primary-color);
+  text-decoration: underline;
+  outline: none;
+}
+
+.breadcrumb-link-button {
+  text-align: left;
+}
+
+.breadcrumb-current {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.breadcrumb-muted {
+  color: var(--text-muted);
+}

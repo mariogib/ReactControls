@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  createBreadcrumb,
   createButton,
   createCard,
   createFormFields,
@@ -13,6 +14,7 @@ import {
 import { factoryCode, snippetCode, type HelpGroup } from "./types";
 
 const Button = createButton(React);
+const Breadcrumb = createBreadcrumb(React);
 const Card = createCard(React);
 const PageHero = createPageHero(React);
 const PanelSection = createPanelSection(React);
@@ -64,6 +66,18 @@ function PageHeroExample() {
       title="Page hero"
       description="Standard page intro with optional action row."
       actions={<Button>Primary action</Button>}
+    />
+  );
+}
+
+function BreadcrumbExample() {
+  return (
+    <Breadcrumb
+      items={[
+        { label: "Projects", href: "#projects" },
+        { label: "MCP Track Tokens", href: "#project" },
+        { label: "Cost by model" },
+      ]}
     />
   );
 }
@@ -193,6 +207,32 @@ export const LAYOUT_HELP_GROUPS: HelpGroup[] = [
 }`,
         ),
         Example: PageHeroExample,
+      },
+      {
+        id: "breadcrumb",
+        title: "Breadcrumb",
+        description:
+          "Theme-aware navigation trail for nested pages. Bind with React Router Link for SPA routes.",
+        code: [
+          'import React from "react";',
+          'import { Link } from "react-router-dom";',
+          'import { createBreadcrumb } from "@lunarq/frontend-shared";',
+          "",
+          "const Breadcrumb = createBreadcrumb(React, Link);",
+          "",
+          `export function Example() {
+  return (
+    <Breadcrumb
+      items={[
+        { label: "Projects", to: "/projects" },
+        { label: "MCP Track Tokens", to: "/projects/1" },
+        { label: "Cost by model" },
+      ]}
+    />
+  );
+}`,
+        ].join("\n"),
+        Example: BreadcrumbExample,
       },
       {
         id: "panelSection",
