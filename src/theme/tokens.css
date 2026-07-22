@@ -1,0 +1,13 @@
+:root {
+  --primary-color: #f97316;
+  --secondary-color: #fb923c;
+  --success-color: #22c55e;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --bg-color: #1f2937;
+  --card-bg: #374151;
+  --text-color: #ffffff;
+  --text-muted: #d1d5db;
+  --border-color: #4b5563;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}

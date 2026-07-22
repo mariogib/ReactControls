@@ -1,0 +1,158 @@
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.browse-list-controls {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.browse-list-controls > .section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.browse-list-controls > .section-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.browse-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.browse-list-controls .secondary-btn {
+  appearance: none;
+  font: inherit;
+  line-height: 1.2;
+}
+
+.browse-list-controls .secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.browse-view-switch {
+  display: inline-flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--bg-color);
+}
+
+.browse-view-switch-btn {
+  appearance: none;
+  margin: 0;
+  border: 0;
+  border-right: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 0.625rem 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.browse-view-switch-btn:last-child {
+  border-right: 0;
+}
+
+.browse-view-switch-btn:hover {
+  background: color-mix(in srgb, var(--card-bg) 70%, var(--bg-color));
+  color: var(--text-color);
+}
+
+.browse-view-switch-btn.active,
+.browse-view-switch-btn[aria-pressed="true"] {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.browse-calendar-scope-switch .browse-view-switch-btn {
+  min-width: 3.75rem;
+}
+
+.browse-list-controls .list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.browse-list-controls .search-input,
+.browse-list-controls .filter-select {
+  box-sizing: border-box;
+  appearance: none;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  padding: 0.625rem 0.875rem;
+}
+
+.browse-list-controls .search-input {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+}
+
+.browse-list-controls .filter-select {
+  flex: 0 1 10rem;
+  min-width: 9rem;
+  padding-right: 2rem;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.browse-list-controls .search-input:focus,
+.browse-list-controls .filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.browse-list-controls .filter-group {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+}
+
+.browse-list-controls .filter-group label {
+  /* Labels stay available to assistive tech via .visually-hidden */
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+.report-filters .browse-list-controls {
+  margin: 0;
+}

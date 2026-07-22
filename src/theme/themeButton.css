@@ -1,0 +1,115 @@
+.theme-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-button-trigger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-button-trigger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--card-bg) 82%, var(--bg-color));
+  border-color: color-mix(in srgb, var(--border-color) 70%, var(--text-muted));
+}
+
+.theme-button-trigger:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.theme-button-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.theme-button-swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-color) 20%, transparent);
+  flex: 0 0 auto;
+}
+
+.theme-button-label {
+  white-space: nowrap;
+}
+
+.theme-button-caret {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.theme-button-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 40;
+  min-width: 14rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 0.15rem;
+}
+
+.theme-button-option {
+  appearance: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--text-color);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-button-option:hover,
+.theme-button-option.is-active {
+  background: color-mix(in srgb, var(--bg-color) 70%, var(--card-bg));
+}
+
+.theme-button-option.is-active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 45%, transparent);
+}
+
+.theme-button-option-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.theme-button-option-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-button-option-description {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}

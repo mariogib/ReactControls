@@ -1,0 +1,156 @@
+@import "../theme/primitives.css";
+@import "./report.css";
+@import "./browseListControls.css";
+
+.form-group {
+	margin-bottom: 1.25rem;
+}
+
+.form-group label {
+	display: block;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-color);
+	margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select,
+.field input,
+.field textarea,
+.field select {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	padding: 0.625rem 0.875rem;
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 0.5rem;
+	color: var(--text-color);
+	font-size: 0.875rem;
+	transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+	outline: none;
+	border-color: var(--primary-color);
+}
+
+.form-group textarea,
+.field textarea {
+	resize: vertical;
+}
+
+.input-with-prefix {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	max-width: 100%;
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+
+.input-prefix {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.625rem 0.75rem;
+	background: color-mix(in srgb, var(--card-bg) 65%, black);
+	border-right: 1px solid var(--border-color);
+	color: var(--text-muted);
+	font-size: 0.875rem;
+	white-space: nowrap;
+}
+
+.input-with-prefix input {
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	flex: 1;
+	min-width: 0;
+}
+
+.input-with-prefix:focus-within {
+	border-color: var(--primary-color);
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator,
+.form-group input[type="time"]::-webkit-calendar-picker-indicator,
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.field input[type="date"]::-webkit-calendar-picker-indicator,
+.field input[type="time"]::-webkit-calendar-picker-indicator,
+.field input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+	filter: invert(1);
+	cursor: pointer;
+	opacity: 0.7;
+}
+
+.date-time-control .date-time-control-input {
+	font-variant-numeric: tabular-nums;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.form-group input[type="time"]::-webkit-calendar-picker-indicator:hover,
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+.field input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.field input[type="time"]::-webkit-calendar-picker-indicator:hover,
+.field input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+	opacity: 1;
+}
+
+.field {
+	display: grid;
+	gap: 0.5rem;
+	min-width: 0;
+	width: 100%;
+}
+
+.field > span:first-child {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-color);
+}
+
+.tenant-checkbox-row {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.625rem;
+	color: var(--text-color);
+	width: 100%;
+	min-width: 0;
+}
+
+.tenant-checkbox-row input {
+	width: 1rem;
+	height: 1rem;
+}
+
+.form-hint {
+	display: block;
+	margin-top: 0.375rem;
+	font-size: 0.75rem;
+	color: var(--text-muted);
+}
+
+.required {
+	color: var(--danger-color);
+}
+
+.error-message {
+	padding: 0.75rem 1rem;
+	background: var(--danger-color);
+	border: 1px solid #991b1b;
+	border-radius: 0.5rem;
+	color: #fecaca;
+	font-size: 0.875rem;
+	margin-bottom: 1.5rem;
+}
