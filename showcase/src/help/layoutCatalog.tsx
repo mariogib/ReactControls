@@ -8,6 +8,7 @@ import {
   createPanelSection,
   createReportLayout,
   createStatusMessage,
+  createTextLink,
   exportToExcel,
   exportToPdf,
 } from "@lunarq/frontend-shared";
@@ -15,6 +16,7 @@ import { factoryCode, snippetCode, type HelpGroup } from "./types";
 
 const Button = createButton(React);
 const Breadcrumb = createBreadcrumb(React);
+const TextLink = createTextLink(React);
 const Card = createCard(React);
 const PageHero = createPageHero(React);
 const PanelSection = createPanelSection(React);
@@ -79,6 +81,31 @@ function BreadcrumbExample() {
         { label: "Cost by model" },
       ]}
     />
+  );
+}
+
+function TextLinkExample() {
+  return (
+    <div className="showcase-stack" style={{ padding: 0, gap: "0.75rem" }}>
+      <p className="showcase-copy" style={{ margin: 0 }}>
+        Accent: <TextLink href="#accent">Open project</TextLink>
+      </p>
+      <p className="showcase-copy" style={{ margin: 0 }}>
+        Muted: <TextLink href="#muted" variant="muted">Back to list</TextLink>
+      </p>
+      <p className="showcase-copy" style={{ margin: 0 }}>
+        Subtle:{" "}
+        <TextLink href="#subtle" variant="subtle" underline="always">
+          Edit rates in Settings
+        </TextLink>
+      </p>
+      <p className="showcase-copy" style={{ margin: 0 }}>
+        External:{" "}
+        <TextLink href="https://example.com" external>
+          Documentation
+        </TextLink>
+      </p>
+    </div>
   );
 }
 
@@ -233,6 +260,31 @@ export const LAYOUT_HELP_GROUPS: HelpGroup[] = [
 }`,
         ].join("\n"),
         Example: BreadcrumbExample,
+      },
+      {
+        id: "textLink",
+        title: "TextLink",
+        description:
+          "Theme-aware text link for in-page navigation. Supports accent/muted/subtle variants and React Router binding.",
+        code: [
+          'import React from "react";',
+          'import { Link } from "react-router-dom";',
+          'import { createTextLink } from "@lunarq/frontend-shared";',
+          "",
+          "const TextLink = createTextLink(React, Link);",
+          "",
+          `export function Example() {
+  return (
+    <>
+      <TextLink to="/projects">Projects</TextLink>
+      <TextLink href="https://example.com" external variant="muted">
+        Docs
+      </TextLink>
+    </>
+  );
+}`,
+        ].join("\n"),
+        Example: TextLinkExample,
       },
       {
         id: "panelSection",

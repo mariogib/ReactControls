@@ -244,7 +244,7 @@ If the shared asset is close but not exact, prefer extending the shared version 
 
 ### Components
 
-- button, card, breadcrumb, modal, empty state, status badge, stats grid
+- button, card, breadcrumb, text link, modal, empty state, status badge, stats grid
 - data table, panel section, page hero
 - CRUD scaffolding and report shell
 - shared form fields

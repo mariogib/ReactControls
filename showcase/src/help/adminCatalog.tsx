@@ -99,7 +99,7 @@ function AdminShellExample() {
       <StatusMessage
         tone="info"
         title="AdminShell"
-        detail="This showcase is already wrapped in createAdminShell. Pass navItems (with optional children for submenus), logo, topBarContent, and sign-out."
+        detail="This showcase is already wrapped in createAdminShell. Use the top-bar arrow control to hide or show the sidebar. Pass navItems, logo, topBarContent, and sign-out."
       />
       <pre className="showcase-code-block">{`const AdminShell = createAdminShell(React, NavLink);
 
@@ -119,6 +119,7 @@ function AdminShellExample() {
   logo={<div>Logo</div>}
   userName="Admin"
   userEmail="admin@lunarq.com"
+  defaultSidebarOpen
   onSignOut={() => {}}
 >
   <Outlet />
@@ -136,7 +137,8 @@ export const ADMIN_HELP_GROUPS: HelpGroup[] = [
       {
         id: "adminShell",
         title: "AdminShell",
-        description: "App chrome with sidebar nav, optional submenus, top bar, and sign-out.",
+        description:
+          "App chrome with hideable sidebar nav, optional submenus, top-bar menu toggle, and sign-out.",
         code: snippetCode(
           'import { createAdminShell } from "@lunarq/frontend-shared";\nimport { NavLink } from "react-router-dom";',
           "const AdminShell = createAdminShell(React, NavLink);",
@@ -147,6 +149,7 @@ export const ADMIN_HELP_GROUPS: HelpGroup[] = [
       logo={<div>Logo</div>}
       userName="Admin"
       userEmail="admin@lunarq.com"
+      defaultSidebarOpen
       onSignOut={() => {}}
     >
       {children}

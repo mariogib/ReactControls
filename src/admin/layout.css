@@ -15,12 +15,101 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  overflow: hidden;
+  transition: width 0.25s ease;
+}
+
+/* Icon rail: labels hide, nav icons stay clickable. */
+.admin-layout.sidebar-collapsed .sidebar {
+  width: 4.5rem;
+}
+
+.admin-layout.sidebar-collapsed .logo-text,
+.admin-layout.sidebar-collapsed .nav-label,
+.admin-layout.sidebar-collapsed .nav-group-chevron,
+.admin-layout.sidebar-collapsed .user-details,
+.admin-layout.sidebar-collapsed .sidebar-logout-btn {
+  display: none;
+}
+
+.admin-layout.sidebar-collapsed .sidebar-header {
+  padding: 0.85rem 0.5rem;
+}
+
+.admin-layout.sidebar-collapsed .logo-image {
+  max-width: 2.4rem;
+}
+
+.admin-layout.sidebar-collapsed .nav-item,
+.admin-layout.sidebar-collapsed .nav-group-summary {
+  justify-content: center;
+  gap: 0;
+  margin-left: 0.4rem;
+  margin-right: 0.4rem;
+  padding-left: 0.65rem;
+  padding-right: 0.65rem;
+}
+
+.admin-layout.sidebar-collapsed .nav-submenu {
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+}
+
+.admin-layout.sidebar-collapsed .nav-submenu .nav-item {
+  margin-left: 0.4rem;
+  margin-right: 0.4rem;
+}
+
+.admin-layout.sidebar-collapsed .sidebar-user {
+  padding: 0.65rem 0.4rem;
+}
+
+.admin-layout.sidebar-collapsed .user-info {
+  justify-content: center;
+  margin-bottom: 0;
+  padding: 0.35rem;
+}
+
+.admin-layout.sidebar-collapsed .user-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1rem;
 }
 
 .sidebar-header {
+  position: relative;
   padding: 1.5rem 1rem;
   border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sidebar-close-btn:hover {
+  background: var(--border-color);
+}
+
+.sidebar-close-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .logo {
@@ -214,7 +303,76 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   background-color: var(--bg-color, #1f1f1f);
+}
+
+.top-bar-start {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0;
+  min-width: 2.75rem;
+  height: 2.25rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  background: color-mix(in srgb, var(--border-color) 55%, var(--card-bg));
+  border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
+}
+
+.sidebar-toggle-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.sidebar-toggle-hamburger,
+.sidebar-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sidebar-toggle-hamburger {
+  font-size: 1.15rem;
+}
+
+.sidebar-toggle-icon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-icon-left {
+  border-width: 0.42rem 0.55rem 0.42rem 0;
+  border-color: transparent currentColor transparent transparent;
+}
+
+.sidebar-toggle-icon-right {
+  border-width: 0.42rem 0 0.42rem 0.55rem;
+  border-color: transparent transparent transparent currentColor;
 }
 
 .page-title {
@@ -418,17 +576,21 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 64px;
+    width: 4.5rem;
   }
 
-  .logo-text,
-  .nav-label {
-    display: none;
+  .admin-layout:not(.sidebar-collapsed) .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    width: min(240px, 84vw);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   }
 
-  .user-details,
-  .sidebar-logout-btn {
-    display: none;
+  .admin-layout:not(.sidebar-collapsed) .sidebar-close-btn {
+    display: inline-flex;
   }
 
   .content-area {

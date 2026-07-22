@@ -2,6 +2,7 @@
 @import "./report.css";
 @import "./browseListControls.css";
 @import "./breadcrumb.css";
+@import "./textLink.css";
 
 .form-group {
 	margin-bottom: 1.25rem;

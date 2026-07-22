@@ -1,0 +1,74 @@
+.text-link {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  text-underline-offset: 0.15em;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.text-link-accent {
+  color: var(--primary-color);
+}
+
+.text-link-muted {
+  color: var(--text-muted);
+}
+
+.text-link-subtle {
+  color: var(--text-color);
+}
+
+.text-link-underline-always {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.text-link-underline-hover {
+  text-decoration: none;
+}
+
+.text-link-underline-hover:hover,
+.text-link-underline-hover:focus-visible {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.text-link-underline-none {
+  text-decoration: none;
+}
+
+.text-link-accent:hover,
+.text-link-accent:focus-visible {
+  color: var(--secondary-color, var(--primary-color));
+}
+
+.text-link-muted:hover,
+.text-link-muted:focus-visible {
+  color: var(--primary-color);
+}
+
+.text-link-subtle:hover,
+.text-link-subtle:focus-visible {
+  color: var(--primary-color);
+}
+
+.text-link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 0.15rem;
+}
+
+.text-link-disabled,
+.text-link-disabled:hover,
+.text-link-disabled:focus-visible {
+  color: var(--text-muted);
+  opacity: 0.55;
+  cursor: not-allowed;
+  text-decoration: none;
+  outline: none;
+}
