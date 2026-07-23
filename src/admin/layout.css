@@ -162,21 +162,24 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   margin: 0.125rem 0.5rem;
-  color: var(--text-muted);
+  color: var(--text-color);
   text-decoration: none;
   border-radius: 0.5rem;
   transition: all 0.2s;
   font-size: 0.9rem;
+  opacity: 0.82;
 }
 
 .nav-item:hover {
   background: var(--border-color);
   color: var(--text-color);
+  opacity: 1;
 }
 
 .nav-item.active {
   background: var(--primary-color);
-  color: var(--text-color);
+  color: var(--accent-contrast, #ffffff);
+  opacity: 1;
 }
 
 .nav-item-group {

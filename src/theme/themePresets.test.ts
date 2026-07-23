@@ -17,7 +17,10 @@ test("builtin presets include lunarq, lunarq-light, and midnight", () => {
   assert.equal(LUNARQ_THEME_PRESET.theme.bgColor, "#1f2937");
   assert.equal(LUNARQ_LIGHT_THEME_PRESET.label, "LunarQ Light");
   assert.equal(LUNARQ_LIGHT_THEME_PRESET.colorScheme, "light");
-  assert.equal(LUNARQ_LIGHT_THEME_PRESET.theme.primaryColor, "#3d5f8a");
+  assert.equal(LUNARQ_LIGHT_THEME_PRESET.theme.primaryColor, "#2f4f78");
+  assert.equal(LUNARQ_LIGHT_THEME_PRESET.theme.textMutedColor, "#2a3444");
+  assert.equal(LUNARQ_LIGHT_THEME_PRESET.theme.borderColor, "#7f91a8");
+  assert.equal(LUNARQ_LIGHT_THEME_PRESET.theme.cardBgColor, "#ffffff");
   assert.equal(MIDNIGHT_THEME_PRESET.theme.primaryColor, "#3fb950");
   assert.equal(MIDNIGHT_THEME_PRESET.theme.bgColor, "#0d1117");
 });

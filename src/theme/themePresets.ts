@@ -43,28 +43,29 @@ export const LUNARQ_THEME_PRESET: ThemePreset = {
 /**
  * Cool silver surfaces with slate-blue accents — matches the LunarQ LQ icon
  * (metallic silver L + indigo crescent Q) on a light dashboard field.
+ * Tuned for stronger text/border contrast on pale surfaces.
  */
 export const LUNARQ_LIGHT_THEME_PRESET: ThemePreset = {
   id: "lunarq-light",
   label: "LunarQ Light",
   description: "Silver surfaces with slate-blue accents from the LunarQ icon",
-  swatch: "#3d5f8a",
+  swatch: "#2f4f78",
   colorScheme: "light",
   theme: {
     tenantId: "lunarq-light",
     tenantName: "LunarQ Light",
     companyName: "LunarQ",
-    primaryColor: "#3d5f8a",
-    secondaryColor: "#2f4c72",
-    successColor: "#2f7d5a",
-    dangerColor: "#a33b2d",
-    warningColor: "#9a6b12",
-    bgColor: "#eef2f7",
-    cardBgColor: "#f7f9fc",
-    textColor: "#0c121c",
-    textMutedColor: "#66768c",
-    borderColor: "#c8d2e0",
-    shadowColor: "0 8px 24px rgba(12, 18, 28, 0.1)",
+    primaryColor: "#2f4f78",
+    secondaryColor: "#243d5e",
+    successColor: "#1f6b4a",
+    dangerColor: "#8f2f24",
+    warningColor: "#8a5a0a",
+    bgColor: "#dfe7f1",
+    cardBgColor: "#ffffff",
+    textColor: "#070b12",
+    textMutedColor: "#2a3444",
+    borderColor: "#7f91a8",
+    shadowColor: "0 10px 28px rgba(7, 11, 18, 0.14)",
     isDefault: true,
   },
 };

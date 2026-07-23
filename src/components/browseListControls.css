@@ -169,7 +169,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-muted);
+  color: var(--text-color);
+  opacity: 0.82;
   font-size: 0.875rem;
 }
 
@@ -182,7 +183,8 @@
 .browse-paging-range,
 .browse-paging-page,
 .browse-paging-hint {
-  color: var(--text-muted);
+  color: var(--text-color);
+  opacity: 0.82;
   font-size: 0.875rem;
 }
 
