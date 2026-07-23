@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import {
   createButton,
   createModalDialog,
@@ -79,14 +79,51 @@ function HelpExampleModal({
   );
 }
 
+function findHelpItem(sectionId: string | undefined, exampleId: string | null): HelpItem | null {
+  if (!exampleId) {
+    return null;
+  }
+  const section = getHelpSection(sectionId);
+  for (const group of section.groups) {
+    const match = group.items.find((item) => item.id === exampleId);
+    if (match) {
+      return match;
+    }
+  }
+  return null;
+}
+
 export default function HelpPage() {
   const { sectionId } = useParams<{ sectionId?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const section = getHelpSection(sectionId);
-  const [activeItem, setActiveItem] = React.useState<HelpItem | null>(null);
+  const exampleId = searchParams.get("example");
+  const activeItem = React.useMemo(
+    () => findHelpItem(sectionId, exampleId),
+    [exampleId, sectionId],
+  );
 
-  React.useEffect(() => {
-    setActiveItem(null);
-  }, [section.id]);
+  const openExample = (item: HelpItem) => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.set("example", item.id);
+        return next;
+      },
+      { replace: false },
+    );
+  };
+
+  const closeExample = () => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete("example");
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   const itemCount = section.groups.reduce((total, group) => total + group.items.length, 0);
 
@@ -118,7 +155,7 @@ export default function HelpPage() {
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
                 </div>
-                <Button variant="secondary" onClick={() => setActiveItem(item)}>
+                <Button variant="secondary" onClick={() => openExample(item)}>
                   View example
                 </Button>
               </article>
@@ -127,7 +164,7 @@ export default function HelpPage() {
         </PanelSection>
       ))}
 
-      {activeItem ? <HelpExampleModal item={activeItem} onClose={() => setActiveItem(null)} /> : null}
+      {activeItem ? <HelpExampleModal item={activeItem} onClose={closeExample} /> : null}
     </div>
   );
 }

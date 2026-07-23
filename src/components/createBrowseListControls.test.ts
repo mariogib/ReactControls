@@ -133,3 +133,179 @@ test("createBrowseListControls renders filters and wires select change handlers"
 
   assert.equal(nextValue, "Active");
 });
+
+test("createBrowseListControls renders page paging controls", () => {
+  const ReactLike = createFakeReact();
+  const BrowseListControls = createBrowseListControls(ReactLike);
+
+  let pageIndex = 0;
+  let pageSize = 10;
+  const element = BrowseListControls({
+    heading: "Campaigns",
+    viewMode: "table",
+    searchValue: "",
+    searchPlaceholder: "Search campaigns...",
+    onSearchChange: () => undefined,
+    onExportToExcel: () => undefined,
+    showViewSwitch: false,
+    showExportButton: false,
+    showHeading: false,
+    showSearch: false,
+    paging: {
+      mode: "pages",
+      pageSize,
+      pageIndex,
+      totalCount: 35,
+      onPageIndexChange: (value) => {
+        pageIndex = value;
+      },
+      onPageSizeChange: (value) => {
+        pageSize = value;
+      },
+    },
+  }) as FakeElement;
+
+  const paging = element.children.find(
+    (child) =>
+      child &&
+      typeof child === "object" &&
+      (child as FakeElement).props.className === "browse-paging",
+  ) as FakeElement;
+  assert.ok(paging);
+  const nav = paging.children[2] as FakeElement;
+  const nextButton = nav.children[2] as FakeElement;
+  (nextButton.props.onClick as () => void)();
+  assert.equal(pageIndex, 1);
+});
+
+test("createBrowseListControls lazy mode uses page navigation", () => {
+  const ReactLike = createFakeReact();
+  const BrowseListControls = createBrowseListControls(ReactLike);
+
+  let pageIndex = 0;
+  const element = BrowseListControls({
+    heading: "Campaigns",
+    viewMode: "table",
+    searchValue: "",
+    searchPlaceholder: "Search...",
+    onSearchChange: () => undefined,
+    onExportToExcel: () => undefined,
+    showViewSwitch: false,
+    showExportButton: false,
+    showHeading: false,
+    showSearch: false,
+    paging: {
+      mode: "lazy",
+      pageSize: 10,
+      pageIndex,
+      totalCount: 25,
+      loadedPages: new Set([0]),
+      onPageIndexChange: (value) => {
+        pageIndex = value;
+      },
+    },
+  }) as FakeElement;
+
+  const paging = element.children.find(
+    (child) =>
+      child &&
+      typeof child === "object" &&
+      (child as FakeElement).props.className === "browse-paging",
+  ) as FakeElement;
+  const nav = paging.children[2] as FakeElement;
+  const nextButton = nav.children[2] as FakeElement;
+  (nextButton.props.onClick as () => void)();
+  assert.equal(pageIndex, 1);
+});
+
+test("createBrowseListControls scroll mode shows scroll hint", () => {
+  const ReactLike = createFakeReact();
+  const BrowseListControls = createBrowseListControls(ReactLike);
+
+  const element = BrowseListControls({
+    heading: "Campaigns",
+    viewMode: "table",
+    searchValue: "",
+    searchPlaceholder: "Search...",
+    onSearchChange: () => undefined,
+    onExportToExcel: () => undefined,
+    showViewSwitch: false,
+    showExportButton: false,
+    showHeading: false,
+    showSearch: false,
+    paging: {
+      mode: "scroll",
+      pageSize: 10,
+      pageIndex: 0,
+      totalCount: 25,
+      loadedPages: new Set([0]),
+      onPageIndexChange: () => undefined,
+    },
+  }) as FakeElement;
+
+  const paging = element.children.find(
+    (child) =>
+      child &&
+      typeof child === "object" &&
+      (child as FakeElement).props.className === "browse-paging",
+  ) as FakeElement;
+  const hint = paging.children[2] as FakeElement;
+  assert.equal(hint.children[0], "Scroll to load more");
+});
+
+test("sliceBrowsePage loads only the displayed page for lazy mode", async () => {
+  const {
+    createBrowseLoadedPages,
+    loadBrowsePage,
+    sliceBrowsePage,
+  } = await import("./createBrowseListControls.js");
+  const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  assert.deepEqual(
+    sliceBrowsePage(items, { mode: "pages", pageIndex: 1, pageSize: 3 }),
+    [4, 5, 6],
+  );
+
+  let loaded = createBrowseLoadedPages(0);
+  assert.deepEqual(
+    sliceBrowsePage(items, {
+      mode: "lazy",
+      pageIndex: 0,
+      pageSize: 3,
+      loadedPages: loaded,
+    }),
+    [1, 2, 3],
+  );
+  assert.deepEqual(
+    sliceBrowsePage(items, {
+      mode: "lazy",
+      pageIndex: 1,
+      pageSize: 3,
+      loadedPages: loaded,
+    }),
+    [],
+  );
+
+  const same = loadBrowsePage(loaded, 0);
+  assert.equal(same, loaded);
+
+  loaded = loadBrowsePage(loaded, 1);
+  assert.deepEqual(
+    sliceBrowsePage(items, {
+      mode: "lazy",
+      pageIndex: 1,
+      pageSize: 3,
+      loadedPages: loaded,
+    }),
+    [4, 5, 6],
+  );
+  assert.deepEqual(
+    sliceBrowsePage(items, {
+      mode: "scroll",
+      pageIndex: 1,
+      pageSize: 3,
+      loadedPages: loaded,
+    }),
+    [1, 2, 3, 4, 5, 6],
+  );
+});

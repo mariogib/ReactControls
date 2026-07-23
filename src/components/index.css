@@ -3,6 +3,7 @@
 @import "./browseListControls.css";
 @import "./breadcrumb.css";
 @import "./textLink.css";
+@import "./chartCard.css";
 
 .form-group {
 	margin-bottom: 1.25rem;

@@ -1,5 +1,5 @@
 import React from "react";
-import { MemoryRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import HelpPage from "./HelpPage";
 import {
   createAdminShell,
@@ -1787,7 +1787,7 @@ export default function App() {
   }));
 
   return (
-    <MemoryRouter initialEntries={["/app"]}>
+    <BrowserRouter>
       <AdminShell
         navItems={navItems}
         logo={
@@ -1841,6 +1841,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>
       </AdminShell>
-    </MemoryRouter>
+    </BrowserRouter>
   );
 }

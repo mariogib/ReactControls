@@ -156,3 +156,68 @@
 .report-filters .browse-list-controls {
   margin: 0;
 }
+
+.browse-paging {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.browse-paging-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.browse-paging-size .filter-select {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
+  width: auto;
+}
+
+.browse-paging-range,
+.browse-paging-page,
+.browse-paging-hint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.browse-scroll-sentinel {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+}
+
+.browse-paging-nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.browse-paging-btn {
+  appearance: none;
+  font: inherit;
+  line-height: 1.2;
+  padding: 0.5rem 0.85rem;
+}
+
+.browse-paging-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .browse-paging-nav {
+    margin-left: 0;
+    width: 100%;
+  }
+}

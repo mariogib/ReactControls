@@ -54,7 +54,8 @@ export interface AdminShellProps {
   contentOverlay?: ReactNodeLike;
   userName: string;
   userEmail: string;
-  onSignOut: () => void | Promise<void>;
+  /** When provided, shows a Sign Out control under the sidebar user block. */
+  onSignOut?: () => void | Promise<void>;
   children: ReactNodeLike;
   /** Controlled sidebar visibility. */
   sidebarOpen?: boolean;
@@ -210,18 +211,20 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
               { className: "user-avatar" },
               react.createElement("span", null, userName.charAt(0).toUpperCase()),
             ),
-            react.createElement(
-              "div",
-              { className: "user-details" },
-              react.createElement("div", { className: "user-name" }, userName),
-              react.createElement("div", { className: "user-email" }, userEmail),
-            ),
-          ),
           react.createElement(
-            "button",
-            { className: "sidebar-logout-btn", onClick: onSignOut, type: "button" },
-            "Sign Out",
+            "div",
+            { className: "user-details" },
+            react.createElement("div", { className: "user-name" }, userName),
+            react.createElement("div", { className: "user-email" }, userEmail),
           ),
+        ),
+        onSignOut
+          ? react.createElement(
+              "button",
+              { className: "sidebar-logout-btn", onClick: onSignOut, type: "button" },
+              "Sign Out",
+            )
+          : null,
         ),
       ),
       react.createElement(

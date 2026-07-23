@@ -87,6 +87,116 @@ When calendar view is enabled, `BrowseListControls` can show Day / Month / Year 
 />
 ```
 
+### Browse paging / lazy load / infinite scroll
+
+Optional. Pass `paging` to show rows-per-page controls.
+
+- `pages` — classic Previous/Next over the full list (in-memory slice)
+- `lazy` — Previous/Next; each **displayed** page is loaded **once** into `loadedPages` and reused when revisited
+- `scroll` — infinite scroll; each page is loaded **once** and appended
+
+#### In-memory lists
+
+Use `sliceBrowsePage`, `createBrowseLoadedPages`, and `loadBrowsePage` when all rows are already client-side:
+
+```ts
+import {
+  createBrowseLoadedPages,
+  loadBrowsePage,
+  sliceBrowsePage,
+} from "@lunarq/frontend-shared";
+
+const [loadedPages, setLoadedPages] = useState(() => createBrowseLoadedPages(0));
+
+useEffect(() => {
+  if (mode === "pages") return;
+  setLoadedPages((prev) => loadBrowsePage(prev, pageIndex)); // no-op if already loaded
+}, [mode, pageIndex]);
+
+const pageRows = sliceBrowsePage(filteredRows, {
+  mode: "lazy",
+  pageIndex,
+  pageSize,
+  loadedPages,
+});
+```
+
+#### Database / API queries (load-once per page)
+
+Browse controls do **not** talk to SQL themselves. Wire `loadedPages` to your data layer so a page runs a query **only the first time it is shown**:
+
+1. Keep `pageCache: Map<pageIndex, Row[]>` (or equivalent).
+2. On `pageIndex` change: if `pageCache.has(pageIndex)` → render cache (no query).
+3. Else run a stable sorted page query, then `loadBrowsePage` + store rows.
+4. Reset cache + `loadedPages` when filters, sort, or `pageSize` change.
+5. Run `COUNT(*)` (or equivalent) when filters change — not on every page revisit.
+
+```sql
+-- pageIndex = 2, pageSize = 25  →  OFFSET 50 LIMIT 25
+SELECT
+  oi.id AS line_id,
+  o.id AS order_id,
+  o.ordered_at,
+  o.status AS order_status,
+  c.name AS customer_name,
+  r.name AS region_name,
+  p.sku,
+  p.name AS product_name,
+  oi.qty,
+  oi.unit_price,
+  (oi.qty * oi.unit_price) AS line_total
+FROM order_items oi
+INNER JOIN orders o ON o.id = oi.order_id
+INNER JOIN customers c ON c.id = o.customer_id
+INNER JOIN regions r ON r.id = c.region_id
+INNER JOIN products p ON p.id = oi.product_id
+WHERE (:search = '' OR ...)
+  AND (:status = '' OR o.status = :status)
+ORDER BY o.ordered_at DESC, oi.id ASC   -- required for stable pages
+LIMIT :pageSize OFFSET :pageIndex * :pageSize;
+```
+
+```ts
+async function ensurePageLoaded(pageIndex: number) {
+  if (pageCache.has(pageIndex)) {
+    setLoadedPages((prev) => loadBrowsePage(prev, pageIndex));
+    return; // already fetched — skip DB
+  }
+  const rows = await api.fetchPage({
+    offset: pageIndex * pageSize,
+    limit: pageSize,
+    search,
+    status,
+  });
+  pageCache.set(pageIndex, rows);
+  setLoadedPages((prev) => loadBrowsePage(prev, pageIndex));
+}
+```
+
+| Mode | Query behavior |
+|------|----------------|
+| **`lazy`** | Query only the displayed page if missing from cache |
+| **`pages`** | Same UI; optionally cache like lazy (recommended for SQL) |
+| **`scroll`** | Query the next unloaded page once; append into cache |
+| **totals** | Separate `COUNT(*)` when filters change |
+
+Showcase demo: Help → Components → **BrowseListControls (SQLite paging)** uses in-browser SQLite (`sql.js`) with a multi-table join and the load-once cache above.
+
+```ts
+<BrowseListControls
+  paging={{
+    mode: "lazy",
+    pageSize,
+    pageSizeOptions: [10, 25, 50, 100],
+    pageIndex,
+    totalCount,
+    loadedPages,
+    onPageIndexChange: setPageIndex,
+    onPageSizeChange: setPageSize,
+  }}
+/>
+```
+
 ### Date / time control
 
 One configurable field for date-only, date+time, or date+time with seconds:

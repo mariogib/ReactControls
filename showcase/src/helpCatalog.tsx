@@ -1,6 +1,8 @@
 import React from "react";
 import {
   createBrowseListControls,
+  createBrowseLoadedPages,
+  createBrowseScrollSentinel,
   createButton,
   createDataTable,
   createEmptyState,
@@ -9,10 +11,15 @@ import {
   createStatsGrid,
   createStatusBadge,
   createStatusMessage,
+  loadBrowsePage,
+  sliceBrowsePage,
+  type BrowsePagingMode,
 } from "@lunarq/frontend-shared";
+import { BrowseSqlPagingExample } from "./sql/BrowseSqlPagingExample";
 
 const Button = createButton(React);
 const BrowseListControls = createBrowseListControls(React);
+const BrowseScrollSentinel = createBrowseScrollSentinel(React);
 const DataTable = createDataTable(React);
 const EmptyState = createEmptyState(React);
 const ModalDialog = createModalDialog(React);
@@ -528,6 +535,126 @@ function BrowseDefaultExample() {
       />
       <p className="showcase-browse-meta">View: {viewMode} · {filteredItems.length} of {items.length}</p>
       <BrowseItemsView viewMode={viewMode} items={filteredItems} />
+    </div>
+  );
+}
+
+function BrowsePagingExample() {
+  const [viewMode, setViewMode] = React.useState<"table" | "grid" | "calendar">("table");
+  const [searchValue, setSearchValue] = React.useState("");
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [pagingMode, setPagingMode] = React.useState<BrowsePagingMode>("pages");
+  const [loadedPages, setLoadedPages] = React.useState(() => createBrowseLoadedPages(0));
+  const items = React.useMemo(
+    () =>
+      Array.from({ length: 42 }, (_, index) =>
+        createBrowseItem({
+          id: `page-${index + 1}`,
+          name: `Campaign ${index + 1}`,
+          status: index % 2 === 0 ? "active" : "draft",
+          budget: String(1000 + index * 25),
+          startDate: "2026-07-20",
+          featured: index % 3 === 0,
+        }),
+      ),
+    [],
+  );
+
+  const filteredItems = items.filter((item) => {
+    const query = searchValue.trim().toLowerCase();
+    return !query || item.name.toLowerCase().includes(query) || item.status.includes(query);
+  });
+
+  React.useEffect(() => {
+    setPageIndex(0);
+    setLoadedPages(createBrowseLoadedPages(0));
+  }, [pagingMode, pageSize, searchValue]);
+
+  React.useEffect(() => {
+    if (pagingMode === "pages") {
+      return;
+    }
+    setLoadedPages((previous) => loadBrowsePage(previous, pageIndex));
+  }, [pageIndex, pagingMode]);
+
+  const pageRows = sliceBrowsePage(filteredItems, {
+    mode: pagingMode,
+    pageIndex,
+    pageSize,
+    loadedPages: pagingMode === "pages" ? undefined : loadedPages,
+  });
+
+  const pageCount = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const nextScrollPage =
+    pagingMode === "scroll"
+      ? Array.from({ length: pageCount }, (_, index) => index).find((index) => !loadedPages.has(index)) ??
+        null
+      : null;
+
+  return (
+    <div className="showcase-browse-surface">
+      <BrowseListControls
+        heading="Paged campaigns"
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        searchValue={searchValue}
+        searchPlaceholder="Search campaigns..."
+        onSearchChange={(value) => {
+          setSearchValue(value);
+          setPageIndex(0);
+        }}
+        onExportToExcel={() => undefined}
+        filters={[
+          {
+            id: "paging-mode",
+            label: "Paging mode",
+            value: pagingMode,
+            onChange: (value) => {
+              const next: BrowsePagingMode =
+                value === "lazy" ? "lazy" : value === "scroll" ? "scroll" : "pages";
+              setPagingMode(next);
+              setPageIndex(0);
+            },
+            options: [
+              { value: "pages", label: "Pages" },
+              { value: "lazy", label: "Lazy pages" },
+              { value: "scroll", label: "Scroll load" },
+            ],
+          },
+        ]}
+        paging={{
+          mode: pagingMode,
+          pageSize,
+          pageSizeOptions: [5, 10, 25],
+          pageIndex,
+          totalCount: filteredItems.length,
+          loadedPages: pagingMode === "pages" ? undefined : loadedPages,
+          onPageIndexChange: setPageIndex,
+          onPageSizeChange: (size) => {
+            setPageSize(size);
+            setPageIndex(0);
+          },
+        }}
+      />
+      <p className="showcase-browse-meta">
+        Mode {pagingMode} · showing {pageRows.length} of {filteredItems.length}
+        {pagingMode !== "pages" ? ` · loaded pages [${[...loadedPages].sort((a, b) => a - b).join(", ")}]` : ""}
+      </p>
+      <BrowseItemsView viewMode={viewMode === "calendar" ? "table" : viewMode} items={pageRows} />
+      {pagingMode === "scroll" ? (
+        <BrowseScrollSentinel
+          enabled={nextScrollPage !== null}
+          loadKey={`${[...loadedPages].join(",")}:${nextScrollPage ?? "done"}`}
+          onLoadMore={() => {
+            if (nextScrollPage === null) {
+              return;
+            }
+            setLoadedPages((previous) => loadBrowsePage(previous, nextScrollPage));
+            setPageIndex(nextScrollPage);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -1244,6 +1371,112 @@ export const HELP_GROUPS: HelpGroup[] = [
   );
 }`),
         Example: BrowseCalendarExample,
+      },
+      {
+        id: "browsePaging",
+        title: "BrowseListControls (Paging)",
+        description:
+          "Optional paging with classic pages, lazy per-page load-once cache, or infinite scroll.",
+        code: browseExampleCode(`import {
+  createBrowseLoadedPages,
+  loadBrowsePage,
+  sliceBrowsePage,
+} from "@lunarq/frontend-shared";
+
+export function Example() {
+  const [viewMode, setViewMode] = React.useState("table");
+  const [searchValue, setSearchValue] = React.useState("");
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [loadedPages, setLoadedPages] = React.useState(() => createBrowseLoadedPages(0));
+  const items = Array.from({ length: 42 }, (_, index) => ({
+    id: String(index + 1),
+    name: \`Campaign \${index + 1}\`,
+    status: index % 2 === 0 ? "active" : "draft",
+  }));
+  const filtered = items.filter((item) =>
+    item.name.toLowerCase().includes(searchValue.trim().toLowerCase()),
+  );
+  React.useEffect(() => {
+    setLoadedPages((previous) => loadBrowsePage(previous, pageIndex));
+  }, [pageIndex]);
+  const pageRows = sliceBrowsePage(filtered, {
+    mode: "lazy",
+    pageIndex,
+    pageSize,
+    loadedPages,
+  });
+
+  return (
+    <>
+      <BrowseListControls
+        heading="Campaigns"
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        searchValue={searchValue}
+        searchPlaceholder="Search..."
+        onSearchChange={(value) => {
+          setSearchValue(value);
+          setPageIndex(0);
+        }}
+        onExportToExcel={() => {}}
+        paging={{
+          mode: "lazy",
+          pageSize,
+          pageIndex,
+          totalCount: filtered.length,
+          loadedPages,
+          onPageIndexChange: setPageIndex,
+          onPageSizeChange: (size) => {
+            setPageSize(size);
+            setPageIndex(0);
+          },
+        }}
+      />
+      <table>
+        <tbody>
+          {pageRows.map((row) => (
+            <tr key={row.id}>
+              <td>{row.name}</td>
+              <td>{row.status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+}`),
+        Example: BrowsePagingExample,
+      },
+      {
+        id: "browseSqlPaging",
+        title: "BrowseListControls (SQLite paging)",
+        description:
+          "Load-once page cache against an in-browser SQLite DB (sql.js): large multi-table join with COUNT(*) + OFFSET/LIMIT. Revisiting a page does not run SELECT again.",
+        code: `import {
+  createBrowseLoadedPages,
+  loadBrowsePage,
+} from "@lunarq/frontend-shared";
+import { countBrowseSqlRows, fetchBrowseSqlPage } from "./sql/browseSqlPagingDb";
+
+// 1) COUNT when filters change
+const { totalCount } = await countBrowseSqlRows(search, status);
+
+// 2) SELECT page only if not cached
+async function ensurePageLoaded(pageIndex: number) {
+  if (pageCache.has(pageIndex)) {
+    setLoadedPages((prev) => loadBrowsePage(prev, pageIndex));
+    return;
+  }
+  const { rows } = await fetchBrowseSqlPage(pageIndex, pageSize, search, status);
+  pageCache.set(pageIndex, rows);
+  setLoadedPages((prev) => loadBrowsePage(prev, pageIndex));
+}
+
+// SQL (joined): order_items ⋈ orders ⋈ customers ⋈ regions ⋈ products
+// ORDER BY ordered_at DESC, line id
+// LIMIT :pageSize OFFSET :pageIndex * :pageSize`,
+        Example: BrowseSqlPagingExample,
       },
     ],
   },

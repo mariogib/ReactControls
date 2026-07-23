@@ -183,6 +183,55 @@ body {
   font-size: 0.8125rem;
 }
 
+.showcase-sql-paging {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.showcase-sql-log {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--card-bg, var(--bg-color));
+  color: var(--text-color);
+}
+
+.showcase-sql-log strong {
+  color: var(--text-color);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.showcase-sql-log ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text-color);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.showcase-sql-log li {
+  color: var(--text-color);
+}
+
+.showcase-sql-pre {
+  margin: 0;
+  overflow: auto;
+  max-height: 14rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  background: #0b1220;
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 .showcase-calendar-preview {
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
