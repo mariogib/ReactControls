@@ -15,6 +15,9 @@ function createFakeReact() {
 
   return {
     Fragment: "Fragment",
+    resetHooks() {
+      stateSlot = 0;
+    },
     useState<T>(initial: T | (() => T)): [T, (value: T | ((current: T) => T)) => void] {
       const index = stateSlot++;
       if (states[index] === undefined) {
@@ -97,4 +100,62 @@ test("createAdminShell can collapse the sidebar to an icon rail", () => {
   assert.equal(toggle?.props["aria-expanded"], false);
   assert.match(String(toggle?.props["aria-label"]), /Expand/i);
   assert.ok(findByClass(element, "sidebar-close-btn"));
+});
+
+test("createAdminShell shows content refresh beside top-bar actions", () => {
+  const react = createFakeReact();
+  const AdminShell = createAdminShell(react, "FakeNavLink");
+  let refreshed = 0;
+
+  react.resetHooks();
+  const element = AdminShell({
+    navItems: [{ to: "/app", end: true, label: "Overview", icon: "⌂" }],
+    logo: "Logo",
+    userName: "Admin",
+    userEmail: "admin@lunarq.com",
+    topBarContent: "Theme",
+    onContentRefresh: () => {
+      refreshed += 1;
+    },
+    children: "Content",
+  }) as FakeNode;
+
+  const refresh = findByClass(element, "content-refresh-btn");
+  assert.ok(refresh);
+  assert.equal(refresh?.props["aria-label"], "Refresh page content");
+  assert.equal(findByClass(element, "content-area")?.props.key, "content-0");
+
+  (refresh?.props.onClick as () => void)();
+  assert.equal(refreshed, 1);
+
+  react.resetHooks();
+  const refreshedElement = AdminShell({
+    navItems: [{ to: "/app", end: true, label: "Overview", icon: "⌂" }],
+    logo: "Logo",
+    userName: "Admin",
+    userEmail: "admin@lunarq.com",
+    topBarContent: "Theme",
+    onContentRefresh: () => {
+      refreshed += 1;
+    },
+    children: "Content",
+  }) as FakeNode;
+
+  assert.equal(findByClass(refreshedElement, "content-area")?.props.key, "content-1");
+});
+
+test("createAdminShell can hide content refresh", () => {
+  const react = createFakeReact();
+  const AdminShell = createAdminShell(react, "FakeNavLink");
+
+  const element = AdminShell({
+    navItems: [{ to: "/app", end: true, label: "Overview", icon: "⌂" }],
+    logo: "Logo",
+    userName: "Admin",
+    userEmail: "admin@lunarq.com",
+    showContentRefresh: false,
+    children: "Content",
+  }) as FakeNode;
+
+  assert.equal(findByClass(element, "content-refresh-btn"), null);
 });

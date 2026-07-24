@@ -64,6 +64,20 @@ export interface AdminShellProps {
   onSidebarOpenChange?: (open: boolean) => void;
   /** Accessible label for the menu toggle. */
   sidebarToggleLabel?: string;
+  /**
+   * Show a top-bar Refresh control next to `topBarContent` (e.g. beside ThemeButton).
+   * Defaults to `true`.
+   */
+  showContentRefresh?: boolean;
+  /** Button label. Defaults to `Refresh`. */
+  contentRefreshLabel?: string;
+  /** Accessible name for the refresh control. Defaults to `Refresh page content`. */
+  contentRefreshAriaLabel?: string;
+  /**
+   * Called when Refresh is clicked, after the content area is scheduled to remount.
+   * Use this to invalidate queries or reload remote data.
+   */
+  onContentRefresh?: () => void | Promise<void>;
 }
 
 function isNavGroup(item: AdminNavItem): item is AdminNavGroup {
@@ -88,9 +102,14 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
     defaultSidebarOpen = true,
     onSidebarOpenChange,
     sidebarToggleLabel,
+    showContentRefresh = true,
+    contentRefreshLabel = "Refresh",
+    contentRefreshAriaLabel = "Refresh page content",
+    onContentRefresh,
   }: AdminShellProps): any {
     const isControlled = sidebarOpen !== undefined;
     const [uncontrolledOpen, setUncontrolledOpen] = react.useState(defaultSidebarOpen);
+    const [contentRevision, setContentRevision] = react.useState(0);
     const open = isControlled ? Boolean(sidebarOpen) : uncontrolledOpen;
 
     function setOpen(next: boolean) {
@@ -98,6 +117,11 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
         setUncontrolledOpen(next);
       }
       onSidebarOpenChange?.(next);
+    }
+
+    function handleContentRefresh() {
+      setContentRevision((value) => value + 1);
+      void onContentRefresh?.();
     }
 
     function renderLeaf(item: AdminNavLeaf, keyPrefix = "") {
@@ -263,10 +287,41 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
                 ),
               ),
             ),
-            react.createElement("div", { className: "user-menu" }, topBarContent),
+            react.createElement(
+              "div",
+              { className: "user-menu" },
+              topBarContent,
+              showContentRefresh
+                ? react.createElement(
+                    "button",
+                    {
+                      type: "button",
+                      className: "content-refresh-btn",
+                      "aria-label": contentRefreshAriaLabel,
+                      title: contentRefreshAriaLabel,
+                      onClick: handleContentRefresh,
+                    },
+                    react.createElement(
+                      "span",
+                      { className: "content-refresh-icon", "aria-hidden": true },
+                      "\u21BB",
+                    ),
+                    react.createElement(
+                      "span",
+                      { className: "content-refresh-label" },
+                      contentRefreshLabel,
+                    ),
+                  )
+                : null,
+            ),
           ),
         ),
-        react.createElement("main", { className: "content-area" }, contentOverlay, children),
+        react.createElement(
+          "main",
+          { className: "content-area", key: `content-${contentRevision}` },
+          contentOverlay,
+          children,
+        ),
       ),
     );
   };
