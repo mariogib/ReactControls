@@ -20,10 +20,10 @@ export async function checkApiHealth(options: CheckApiHealthOptions): Promise<He
     lastCheck: new Date(),
   };
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
+  try {
     const response = await fetch(endpoint, {
       method: "GET",
       signal: controller.signal,
@@ -32,8 +32,6 @@ export async function checkApiHealth(options: CheckApiHealthOptions): Promise<He
         ...(requestHeaders ?? {}),
       },
     });
-
-    window.clearTimeout(timeoutId);
 
     if (response.ok) {
       result.isHealthy = true;
@@ -50,6 +48,8 @@ export async function checkApiHealth(options: CheckApiHealthOptions): Promise<He
     } else {
       result.error = "Unknown error occurred";
     }
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 
   return result;
@@ -78,6 +78,11 @@ export class ApiHealthMonitor {
 
   private checkCount = 0;
 
+  /** Bumped on stop/start so in-flight checks ignore stale callbacks. */
+  private runGeneration = 0;
+
+  private active = false;
+
   public constructor(options: ApiHealthMonitorOptions) {
     this.endpoint = options.endpoint;
     this.checkIntervalMs = options.checkIntervalMs ?? 5000;
@@ -87,17 +92,21 @@ export class ApiHealthMonitor {
   }
 
   public start(): void {
-    if (this.timerId) {
+    if (this.active) {
       return;
     }
 
-    void this.performCheck();
+    this.active = true;
+    const generation = ++this.runGeneration;
+    void this.performCheck(generation);
     this.timerId = window.setInterval(() => {
-      void this.performCheck();
+      void this.performCheck(generation);
     }, this.checkIntervalMs);
   }
 
   public stop(): void {
+    this.active = false;
+    this.runGeneration += 1;
     if (this.timerId) {
       window.clearInterval(this.timerId);
       this.timerId = null;
@@ -112,13 +121,21 @@ export class ApiHealthMonitor {
     this.checkCount = 0;
   }
 
-  private async performCheck(): Promise<void> {
+  private async performCheck(generation: number): Promise<void> {
+    if (!this.active || generation !== this.runGeneration) {
+      return;
+    }
+
     this.checkCount++;
     const result = await checkApiHealth({
       endpoint: this.endpoint,
       timeoutMs: this.timeoutMs,
       requestHeaders: this.requestHeaders,
     });
+
+    if (!this.active || generation !== this.runGeneration) {
+      return;
+    }
 
     this.onStatusChange?.(result);
   }

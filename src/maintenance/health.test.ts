@@ -162,6 +162,51 @@ test("checkApiHealth passes request headers", async () => {
   }
 });
 
+test("checkApiHealth clears timeout after network failure", async () => {
+  const { timeouts } = setupGlobals();
+  globalThis.fetch = async (_url: any, _options: any) => {
+    throw new Error("Failed to fetch");
+  };
+
+  try {
+    await checkApiHealth({ endpoint: "/health", timeoutMs: 5000 });
+    assert.equal(timeouts.size, 0);
+  } finally {
+    teardownGlobals();
+  }
+});
+
+test("ApiHealthMonitor ignores late results after stop", async () => {
+  setupGlobals();
+  let resolveFetch: ((value: Response) => void) | null = null;
+  globalThis.fetch = async () =>
+    new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+
+  const results: Array<{ isHealthy: boolean }> = [];
+  try {
+    const monitor = new ApiHealthMonitor({
+      endpoint: "/health",
+      checkIntervalMs: 60_000,
+      onStatusChange: (result) => results.push(result),
+    });
+
+    monitor.start();
+    monitor.stop();
+
+    assert.ok(resolveFetch);
+    resolveFetch({ ok: true, status: 200, statusText: "OK" } as Response);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    assert.equal(results.length, 0);
+  } finally {
+    teardownGlobals();
+  }
+});
+
 test("ApiHealthMonitor tracks check count", async () => {
   setupGlobals();
   let fetchResolve: () => void;

@@ -27,6 +27,9 @@ function createFakeThemeReact() {
     useCallback<T extends (...args: any[]) => any>(callback: T): T {
       return callback;
     },
+    useRef<T>(initialValue: T): { current: T } {
+      return { current: initialValue };
+    },
     useContext<T>(context: FakeContext<T>): T {
       return context._value;
     },

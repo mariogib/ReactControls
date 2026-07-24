@@ -42,27 +42,31 @@ export function createAuthCallback(
   return function AuthCallback() {
     const [error, setError] = react.useState<string | null>(null);
 
-    react.useEffect(() => {
-      const callbackUrl = window.location.href;
-      if (inFlightGuard && activeCallbackUrl === callbackUrl) {
-        return;
-      }
-
-      if (inFlightGuard) {
-        activeCallbackUrl = callbackUrl;
-      }
+  react.useEffect(() => {
+      let cancelled = false;
 
       void (async () => {
-        const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-        const resolvedAppPath = `${baseUrl.replace(/\/$/, "")}${appPath}`;
+        const callbackUrl = window.location.href;
+        if (inFlightGuard && activeCallbackUrl === callbackUrl) {
+          return;
+        }
+
+        if (inFlightGuard) {
+          activeCallbackUrl = callbackUrl;
+        }
 
         try {
+          const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+          const resolvedAppPath = `${baseUrl.replace(/\/$/, "")}${appPath}`;
           const params = new URLSearchParams(window.location.search);
 
           if (handleAuthErrors && cleanupUser) {
             const authError = params.get("error");
             if (authError) {
               await cleanupUser();
+              if (cancelled) {
+                return;
+              }
               const authErrorDescription = params.get("error_description");
               const landingParams = new URLSearchParams();
               landingParams.set("authError", authError);
@@ -76,16 +80,28 @@ export function createAuthCallback(
 
           if (params.has("code")) {
             await processSigninCallback();
+            if (cancelled) {
+              return;
+            }
             window.location.replace(resolvedAppPath);
             return;
           }
 
           await processSignoutCallback();
+          if (cancelled) {
+            return;
+          }
           window.location.replace(landingPath === "/" ? baseUrl : landingPath);
         } catch (nextError) {
+          if (cancelled) {
+            return;
+          }
           if (isRecoverableError && cleanupUser && isRecoverableError(nextError)) {
             await cleanupUser();
-            window.location.replace(normalizedBaseUrl);
+            if (cancelled) {
+              return;
+            }
+            window.location.replace(baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
             return;
           }
 
@@ -96,6 +112,10 @@ export function createAuthCallback(
           }
         }
       })();
+
+      return () => {
+        cancelled = true;
+      };
     }, []);
 
     if (error) {

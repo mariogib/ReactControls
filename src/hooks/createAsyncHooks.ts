@@ -59,20 +59,39 @@ export function createAsyncHooks({
     const [loading, setLoading] = react.useState(immediate);
     const [error, setError] = react.useState<string | null>(null);
     const asyncFunctionRef = react.useRef(asyncFunction);
+    const requestIdRef = react.useRef(0);
+    const mountedRef = react.useRef(true);
+
+    react.useEffect(() => {
+      mountedRef.current = true;
+      return () => {
+        mountedRef.current = false;
+        requestIdRef.current += 1;
+      };
+    }, []);
 
     react.useEffect(() => {
       asyncFunctionRef.current = asyncFunction;
     }, [asyncFunction]);
 
     const execute = react.useCallback(async () => {
-      setLoading(true);
-      setError(null);
+      const requestId = ++requestIdRef.current;
+      if (mountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const result = await asyncFunctionRef.current();
+        if (!mountedRef.current || requestId !== requestIdRef.current) {
+          return result;
+        }
         setData(result);
         return result;
       } catch (nextError) {
+        if (!mountedRef.current || requestId !== requestIdRef.current) {
+          return null;
+        }
         const nextErrorMessage = getErrorMessage(nextError, errorMessage);
         setError(nextErrorMessage);
         if (shouldLogError?.(nextError) ?? true) {
@@ -80,7 +99,9 @@ export function createAsyncHooks({
         }
         return null;
       } finally {
-        setLoading(false);
+        if (mountedRef.current && requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     }, [errorMessage, ...dependencies]);
 
@@ -91,6 +112,9 @@ export function createAsyncHooks({
       }
 
       void execute();
+      return () => {
+        requestIdRef.current += 1;
+      };
     }, [execute, immediate]);
 
     const refresh = react.useCallback(() => execute(), [execute]);
@@ -130,26 +154,43 @@ export function createAsyncHooks({
   ) {
     const [loading, setLoading] = react.useState(false);
     const [error, setError] = react.useState<string | null>(null);
+    const mountedRef = react.useRef(true);
+    const runIdRef = react.useRef(0);
+
+    react.useEffect(() => {
+      mountedRef.current = true;
+      return () => {
+        mountedRef.current = false;
+        runIdRef.current += 1;
+      };
+    }, []);
 
     const run = react.useCallback(
       async <T>(
         asyncOperation: () => Promise<T>,
         errorMessage?: string,
       ): Promise<T> => {
-        setLoading(true);
-        setError(null);
+        const runId = ++runIdRef.current;
+        if (mountedRef.current) {
+          setLoading(true);
+          setError(null);
+        }
 
         try {
           return await asyncOperation();
         } catch (nextError) {
-          const nextErrorMessage = getErrorMessage(
-            nextError,
-            errorMessage ?? defaultMutationErrorMessage,
-          );
-          setError(nextErrorMessage);
+          if (mountedRef.current && runId === runIdRef.current) {
+            const nextErrorMessage = getErrorMessage(
+              nextError,
+              errorMessage ?? defaultMutationErrorMessage,
+            );
+            setError(nextErrorMessage);
+          }
           throw nextError;
         } finally {
-          setLoading(false);
+          if (mountedRef.current && runId === runIdRef.current) {
+            setLoading(false);
+          }
         }
       },
       [defaultMutationErrorMessage],

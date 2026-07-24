@@ -5,6 +5,7 @@ interface ReactThemeApi {
   useState<T>(initialState: T | (() => T)): [T, Dispatch<T>];
   useEffect(effect: () => void | (() => void), dependencies?: readonly unknown[]): void;
   useCallback<T extends (...args: any[]) => any>(callback: T, dependencies: readonly unknown[]): T;
+  useRef<T>(initialValue: T): { current: T };
   useContext<T>(context: ThemeContextLike<T>): T;
   createContext<T>(value: T): ThemeContextLike<T>;
   createElement(type: any, props?: Record<string, unknown> | null, ...children: any[]): any;
@@ -91,10 +92,23 @@ export function createThemeContext<TTheme extends object>(
     const [theme, setTheme] = react.useState<TTheme | null>(null);
     const [loading, setLoading] = react.useState(true);
     const [error, setError] = react.useState<string | null>(null);
+    const loadGenerationRef = react.useRef(0);
+    const mountedRef = react.useRef(true);
+
+    react.useEffect(() => {
+      mountedRef.current = true;
+      return () => {
+        mountedRef.current = false;
+        loadGenerationRef.current += 1;
+      };
+    }, []);
 
     const loadTheme = react.useCallback(async () => {
-      setLoading(true);
-      setError(null);
+      const generation = ++loadGenerationRef.current;
+      if (mountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const themeData = await loadThemeByUrl(window.location.origin);
@@ -112,11 +126,19 @@ export function createThemeContext<TTheme extends object>(
           }
         }
 
+        if (!mountedRef.current || generation !== loadGenerationRef.current) {
+          return;
+        }
+
         setTheme(themeData);
         applyThemeVariables(themeData);
         updateFavicon(themeData);
         updateDocumentTitle(themeData, baseTitle);
       } catch (nextError) {
+        if (!mountedRef.current || generation !== loadGenerationRef.current) {
+          return;
+        }
+
         const errorMessage = getErrorMessage(nextError, "Failed to load theme");
         setError(errorMessage);
 
@@ -126,12 +148,17 @@ export function createThemeContext<TTheme extends object>(
         updateFavicon(fallbackTheme);
         updateDocumentTitle(fallbackTheme, baseTitle);
       } finally {
-        setLoading(false);
+        if (mountedRef.current && generation === loadGenerationRef.current) {
+          setLoading(false);
+        }
       }
     }, []);
 
     react.useEffect(() => {
       void loadTheme();
+      return () => {
+        loadGenerationRef.current += 1;
+      };
     }, [loadTheme]);
 
     react.useEffect(() => {

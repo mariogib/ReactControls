@@ -25,12 +25,21 @@ export function createRequireAuth(
     const [ready, setReady] = react.useState(false);
 
     react.useEffect(() => {
+      let cancelled = false;
+
       void (async () => {
         const user = await getUser();
+        if (cancelled) {
+          return;
+        }
+
         if (!user || user.expired) {
           if (renewSession) {
             try {
               const renewedUser = await renewSession();
+              if (cancelled) {
+                return;
+              }
               if (renewedUser && !renewedUser.expired) {
                 setReady(true);
                 return;
@@ -40,12 +49,19 @@ export function createRequireAuth(
             }
           }
 
+          if (cancelled) {
+            return;
+          }
           await signIn();
           return;
         }
 
         setReady(true);
       })();
+
+      return () => {
+        cancelled = true;
+      };
     }, []);
 
     if (!ready) {
