@@ -202,6 +202,96 @@ export const FLUENT_METAL_THEME_PRESET: ThemePreset = {
 };
 
 /**
+ * Fluent metallic chrome with a brushed cobalt / steel-blue palette —
+ * deep navy surfaces and cool metallic blue accents.
+ */
+export const FLUENT_METAL_BLUE_THEME_PRESET: ThemePreset = {
+  id: "fluent-metal-blue",
+  label: "Fluent Metal Blue",
+  description: "Dark metallic Fluent — navy steel surfaces with brushed cobalt accents",
+  swatch: "#8eb4d4",
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    tenantId: "fluent-metal-blue",
+    tenantName: "Fluent Metal Blue",
+    companyName: "Fluent",
+    primaryColor: "#8eb4d4",
+    secondaryColor: "#b3cfe6",
+    successColor: "#6db89a",
+    dangerColor: "#e08a9a",
+    warningColor: "#c9a85a",
+    bgColor: "#0a1018",
+    cardBgColor: "#141c28",
+    textColor: "#e8f0f8",
+    textMutedColor: "#8fa3b8",
+    borderColor: "#3a4d63",
+    shadowColor: "0 10px 28px rgba(0, 0, 0, 0.55), 0 0 1px rgba(142, 180, 212, 0.22)",
+    isDefault: true,
+  },
+};
+
+/**
+ * Fluent metallic chrome with a brushed jade / steel-green palette —
+ * deep forest-steel surfaces and cool metallic green accents.
+ */
+export const FLUENT_METAL_GREEN_THEME_PRESET: ThemePreset = {
+  id: "fluent-metal-green",
+  label: "Fluent Metal Green",
+  description: "Dark metallic Fluent — forest-steel surfaces with brushed jade accents",
+  swatch: "#8ec4a8",
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    tenantId: "fluent-metal-green",
+    tenantName: "Fluent Metal Green",
+    companyName: "Fluent",
+    primaryColor: "#8ec4a8",
+    secondaryColor: "#b3d9c4",
+    successColor: "#6db89a",
+    dangerColor: "#e08a9a",
+    warningColor: "#c9a85a",
+    bgColor: "#0a1210",
+    cardBgColor: "#141f1b",
+    textColor: "#e8f5ef",
+    textMutedColor: "#8faba0",
+    borderColor: "#3a554a",
+    shadowColor: "0 10px 28px rgba(0, 0, 0, 0.55), 0 0 1px rgba(142, 196, 168, 0.22)",
+    isDefault: true,
+  },
+};
+
+/**
+ * Fluent chrome with an aurora palette — deep indigo night field and
+ * teal/cyan glow accents (distinct from the metal and LunarQ families).
+ */
+export const FLUENT_AURORA_THEME_PRESET: ThemePreset = {
+  id: "fluent-aurora",
+  label: "Fluent Aurora",
+  description: "Deep indigo night field with teal aurora accents",
+  swatch: "#5ec8c0",
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    tenantId: "fluent-aurora",
+    tenantName: "Fluent Aurora",
+    companyName: "Fluent",
+    primaryColor: "#5ec8c0",
+    secondaryColor: "#8eddd6",
+    successColor: "#6db89a",
+    dangerColor: "#e08a9a",
+    warningColor: "#e0c06a",
+    bgColor: "#0b0f1a",
+    cardBgColor: "#141a2a",
+    textColor: "#e8eef8",
+    textMutedColor: "#8f9bb8",
+    borderColor: "#2a3550",
+    shadowColor: "0 10px 28px rgba(0, 0, 0, 0.55), 0 0 1px rgba(94, 200, 192, 0.28)",
+    isDefault: true,
+  },
+};
+
+/**
  * Fluent layout/type chrome with the classic LunarQ dark orange palette.
  */
 export const FLUENT_LUNARQ_THEME_PRESET: ThemePreset = {
@@ -265,6 +355,9 @@ export const BUILTIN_THEME_PRESETS: ThemePreset[] = [
   FLUENT_THEME_PRESET,
   FLUENT_DARK_THEME_PRESET,
   FLUENT_METAL_THEME_PRESET,
+  FLUENT_METAL_BLUE_THEME_PRESET,
+  FLUENT_METAL_GREEN_THEME_PRESET,
+  FLUENT_AURORA_THEME_PRESET,
   FLUENT_LUNARQ_THEME_PRESET,
   FLUENT_LUNARQ_LIGHT_THEME_PRESET,
   FLUENT_LUNARQ_BLUE_THEME_PRESET,

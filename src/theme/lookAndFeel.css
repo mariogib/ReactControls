@@ -453,14 +453,35 @@
   color: #ffffff;
 }
 
-/* Brushed-silver accents need dark ink on primary actions. */
+/* Brushed-silver / cobalt accents need dark ink on primary actions. */
 [data-theme="fluent-metal"] .primary-btn,
 [data-theme="fluent-metal"] .refresh-btn,
 [data-theme="fluent-metal"] .btn:not(.btn-secondary):not(.btn-ghost):not(.btn-danger):not(.btn-outlined) {
   color: #0e1012;
 }
 
-[data-theme="fluent-metal"] .nav-item.active {
+[data-theme="fluent-metal-blue"] .primary-btn,
+[data-theme="fluent-metal-blue"] .refresh-btn,
+[data-theme="fluent-metal-blue"] .btn:not(.btn-secondary):not(.btn-ghost):not(.btn-danger):not(.btn-outlined) {
+  color: #0a1018;
+}
+
+[data-theme="fluent-metal-green"] .primary-btn,
+[data-theme="fluent-metal-green"] .refresh-btn,
+[data-theme="fluent-metal-green"] .btn:not(.btn-secondary):not(.btn-ghost):not(.btn-danger):not(.btn-outlined) {
+  color: #0a1210;
+}
+
+[data-theme="fluent-aurora"] .primary-btn,
+[data-theme="fluent-aurora"] .refresh-btn,
+[data-theme="fluent-aurora"] .btn:not(.btn-secondary):not(.btn-ghost):not(.btn-danger):not(.btn-outlined) {
+  color: #0b0f1a;
+}
+
+[data-theme="fluent-metal"] .nav-item.active,
+[data-theme="fluent-metal-blue"] .nav-item.active,
+[data-theme="fluent-metal-green"] .nav-item.active,
+[data-theme="fluent-aurora"] .nav-item.active {
   background: color-mix(in srgb, var(--primary-color) 18%, transparent);
   color: var(--primary-color);
 }

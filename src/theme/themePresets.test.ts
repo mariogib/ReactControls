@@ -7,6 +7,9 @@ import {
   FLUENT_LUNARQ_LIGHT_THEME_PRESET,
   FLUENT_LUNARQ_THEME_PRESET,
   FLUENT_METAL_THEME_PRESET,
+  FLUENT_METAL_BLUE_THEME_PRESET,
+  FLUENT_METAL_GREEN_THEME_PRESET,
+  FLUENT_AURORA_THEME_PRESET,
   FLUENT_THEME_PRESET,
   getThemePresetById,
   groupThemePresetsByLookAndFeel,
@@ -20,7 +23,7 @@ import {
 } from "./themePresets.js";
 
 test("builtin presets include LunarQ and Fluent look-and-feels", () => {
-  assert.equal(BUILTIN_THEME_PRESETS.length, 9);
+  assert.equal(BUILTIN_THEME_PRESETS.length, 12);
   assert.equal(LUNARQ_THEME_PRESET.theme.primaryColor, "#f97316");
   assert.equal(LUNARQ_THEME_PRESET.theme.bgColor, "#1f2937");
   assert.equal(LUNARQ_LIGHT_THEME_PRESET.label, "LunarQ Light");
@@ -40,6 +43,18 @@ test("builtin presets include LunarQ and Fluent look-and-feels", () => {
   assert.equal(FLUENT_METAL_THEME_PRESET.lookAndFeel, "fluent");
   assert.equal(FLUENT_METAL_THEME_PRESET.theme.primaryColor, "#b8c0cc");
   assert.equal(FLUENT_METAL_THEME_PRESET.theme.bgColor, "#0e1012");
+  assert.equal(FLUENT_METAL_BLUE_THEME_PRESET.id, "fluent-metal-blue");
+  assert.equal(FLUENT_METAL_BLUE_THEME_PRESET.lookAndFeel, "fluent");
+  assert.equal(FLUENT_METAL_BLUE_THEME_PRESET.theme.primaryColor, "#8eb4d4");
+  assert.equal(FLUENT_METAL_BLUE_THEME_PRESET.theme.bgColor, "#0a1018");
+  assert.equal(FLUENT_METAL_GREEN_THEME_PRESET.id, "fluent-metal-green");
+  assert.equal(FLUENT_METAL_GREEN_THEME_PRESET.lookAndFeel, "fluent");
+  assert.equal(FLUENT_METAL_GREEN_THEME_PRESET.theme.primaryColor, "#8ec4a8");
+  assert.equal(FLUENT_METAL_GREEN_THEME_PRESET.theme.bgColor, "#0a1210");
+  assert.equal(FLUENT_AURORA_THEME_PRESET.id, "fluent-aurora");
+  assert.equal(FLUENT_AURORA_THEME_PRESET.lookAndFeel, "fluent");
+  assert.equal(FLUENT_AURORA_THEME_PRESET.theme.primaryColor, "#5ec8c0");
+  assert.equal(FLUENT_AURORA_THEME_PRESET.theme.bgColor, "#0b0f1a");
   assert.equal(FLUENT_LUNARQ_THEME_PRESET.id, "fluent-lunarq");
   assert.equal(FLUENT_LUNARQ_THEME_PRESET.lookAndFeel, "fluent");
   assert.equal(FLUENT_LUNARQ_THEME_PRESET.theme.primaryColor, LUNARQ_THEME_PRESET.theme.primaryColor);
@@ -61,6 +76,9 @@ test("getThemePresetById resolves known ids", () => {
   assert.equal(getThemePresetById("fluent")?.label, "Fluent");
   assert.equal(getThemePresetById("fluent-dark")?.label, "Fluent Dark");
   assert.equal(getThemePresetById("fluent-metal")?.label, "Fluent Metal");
+  assert.equal(getThemePresetById("fluent-metal-blue")?.label, "Fluent Metal Blue");
+  assert.equal(getThemePresetById("fluent-metal-green")?.label, "Fluent Metal Green");
+  assert.equal(getThemePresetById("fluent-aurora")?.label, "Fluent Aurora");
   assert.equal(getThemePresetById("fluent-lunarq")?.label, "Fluent LunarQ");
   assert.equal(getThemePresetById("fluent-lunarq-light")?.label, "Fluent LunarQ Light");
   assert.equal(getThemePresetById("fluent-lunarq-blue")?.label, "Fluent LunarQ Blue");
@@ -84,6 +102,9 @@ test("resolveThemeColorScheme uses explicit scheme or luminance", () => {
   assert.equal(resolveThemeColorScheme(FLUENT_THEME_PRESET), "light");
   assert.equal(resolveThemeColorScheme(FLUENT_DARK_THEME_PRESET), "dark");
   assert.equal(resolveThemeColorScheme(FLUENT_METAL_THEME_PRESET), "dark");
+  assert.equal(resolveThemeColorScheme(FLUENT_METAL_BLUE_THEME_PRESET), "dark");
+  assert.equal(resolveThemeColorScheme(FLUENT_METAL_GREEN_THEME_PRESET), "dark");
+  assert.equal(resolveThemeColorScheme(FLUENT_AURORA_THEME_PRESET), "dark");
   assert.equal(resolveThemeColorScheme(FLUENT_LUNARQ_THEME_PRESET), "dark");
   assert.equal(resolveThemeColorScheme(FLUENT_LUNARQ_LIGHT_THEME_PRESET), "light");
 
@@ -108,7 +129,7 @@ test("groupThemePresetsByLookAndFeel keeps LunarQ and Fluent sections", () => {
   assert.equal(groups[0]?.themes.length, 3);
   assert.equal(groups[1]?.lookAndFeel, "fluent");
   assert.equal(groups[1]?.label, "Microsoft Fluent");
-  assert.equal(groups[1]?.themes.length, 6);
+  assert.equal(groups[1]?.themes.length, 9);
   assert.equal(resolveThemeLookAndFeel(FLUENT_THEME_PRESET), "fluent");
   assert.equal(resolveThemeLookAndFeel(FLUENT_METAL_THEME_PRESET), "fluent");
   assert.equal(resolveThemeLookAndFeel(FLUENT_LUNARQ_THEME_PRESET), "fluent");
