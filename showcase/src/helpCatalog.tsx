@@ -8,6 +8,7 @@ import {
   createEmptyState,
   createFormFields,
   createModalDialog,
+  createPopupForm,
   createStatsGrid,
   createStatusBadge,
   createStatusMessage,
@@ -23,6 +24,7 @@ const BrowseScrollSentinel = createBrowseScrollSentinel(React);
 const DataTable = createDataTable(React);
 const EmptyState = createEmptyState(React);
 const ModalDialog = createModalDialog(React);
+const PopupForm = createPopupForm(React);
 const StatsGrid = createStatsGrid(React);
 const StatusBadge = createStatusBadge(React);
 const StatusMessage = createStatusMessage(React);
@@ -853,6 +855,184 @@ function ModalDialogExample() {
   );
 }
 
+type PopupDemoRow = {
+  id: string;
+  name: string;
+  owner: string;
+  budget: string;
+  active: boolean;
+};
+
+const POPUP_DEMO_SEED: PopupDemoRow[] = [
+  { id: "1", name: "Summer Campaign", owner: "Marketing", budget: "12000", active: true },
+  { id: "2", name: "Loyalty Bonus", owner: "Growth", budget: "4500", active: false },
+];
+
+function emptyPopupDraft(): Omit<PopupDemoRow, "id"> {
+  return { name: "", owner: "", budget: "0", active: true };
+}
+
+function PopupFormExample() {
+  const [rows, setRows] = React.useState(POPUP_DEMO_SEED);
+  const [mode, setMode] = React.useState<"create" | "edit" | null>(null);
+  const [draft, setDraft] = React.useState(emptyPopupDraft);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+
+  function openCreate() {
+    setEditingId(null);
+    setDraft(emptyPopupDraft());
+    setMode("create");
+  }
+
+  function openEdit(row: PopupDemoRow) {
+    setEditingId(row.id);
+    setDraft({
+      name: row.name,
+      owner: row.owner,
+      budget: row.budget,
+      active: row.active,
+    });
+    setMode("edit");
+  }
+
+  function closePopup() {
+    setMode(null);
+    setEditingId(null);
+  }
+
+  function savePopup(event: { preventDefault: () => void }) {
+    event.preventDefault();
+    if (!draft.name.trim()) {
+      return;
+    }
+
+    if (mode === "create") {
+      setRows((current) => [
+        ...current,
+        {
+          id: String(Date.now()),
+          name: draft.name.trim(),
+          owner: draft.owner.trim() || "Unassigned",
+          budget: draft.budget || "0",
+          active: draft.active,
+        },
+      ]);
+    } else if (mode === "edit" && editingId) {
+      setRows((current) =>
+        current.map((row) =>
+          row.id === editingId
+            ? {
+                ...row,
+                name: draft.name.trim(),
+                owner: draft.owner.trim() || "Unassigned",
+                budget: draft.budget || "0",
+                active: draft.active,
+              }
+            : row,
+        ),
+      );
+    }
+
+    closePopup();
+  }
+
+  return (
+    <div className="stack">
+      <div className="showcase-action-row">
+        <Button onClick={openCreate}>New campaign</Button>
+      </div>
+      <div className="browse-table-wrap">
+        <table className="browse-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Owner</th>
+              <th>Budget</th>
+              <th>Status</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id}>
+                <td>
+                  <div className="browse-table-primary">{row.name}</div>
+                </td>
+                <td>{row.owner}</td>
+                <td>{row.budget}</td>
+                <td>
+                  <StatusBadge status={row.active ? "active" : "inactive"} />
+                </td>
+                <td>
+                  <Button variant="secondary" onClick={() => openEdit(row)}>
+                    Edit
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {mode ? (
+        <PopupForm
+          title={mode === "create" ? "New campaign" : "Edit campaign"}
+          subtitle={
+            mode === "create"
+              ? "Create a tracked campaign with owner and budget."
+              : "Update campaign details, then save."
+          }
+          onClose={closePopup}
+          onSubmit={savePopup}
+          footer={
+            <>
+              <Button type="submit">{mode === "create" ? "Create" : "Save changes"}</Button>
+              <Button type="button" variant="secondary" onClick={closePopup}>
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          <div className="showcase-control-grid">
+            <TextField
+              htmlFor="popup-demo-name"
+              label="Name"
+              required
+              value={draft.name}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setDraft((current) => ({ ...current, name: event.target.value }))
+              }
+            />
+            <TextField
+              htmlFor="popup-demo-owner"
+              label="Owner"
+              value={draft.owner}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setDraft((current) => ({ ...current, owner: event.target.value }))
+              }
+            />
+            <CurrencyField
+              htmlFor="popup-demo-budget"
+              label="Budget"
+              prefix="R"
+              value={draft.budget}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setDraft((current) => ({ ...current, budget: event.target.value }))
+              }
+            />
+            <CheckboxField
+              checked={draft.active}
+              label="Active"
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setDraft((current) => ({ ...current, active: event.target.checked }))
+              }
+            />
+          </div>
+        </PopupForm>
+      ) : null}
+    </div>
+  );
+}
+
 export const HELP_GROUPS: HelpGroup[] = [
   {
     id: "primitives",
@@ -1530,7 +1710,7 @@ async function ensurePageLoaded(pageIndex: number) {
   {
     id: "overlay",
     eyebrow: "Overlay",
-    title: "Shared Modal",
+    title: "Dialogs & forms",
     items: [
       {
         id: "modalDialog",
@@ -1563,6 +1743,85 @@ async function ensurePageLoaded(pageIndex: number) {
 }`,
         ].join("\n"),
         Example: ModalDialogExample,
+      },
+      {
+        id: "popupForm",
+        title: "PopupForm",
+        description:
+          "Draggable popup shell for create/edit forms with title bar, Escape/overlay close, and submit footer.",
+        code: [
+          'import React from "react";',
+          'import {',
+          "  createButton,",
+          "  createFormFields,",
+          "  createPopupForm,",
+          '} from "@lunarq/frontend-shared";',
+          "",
+          "const Button = createButton(React);",
+          "const PopupForm = createPopupForm(React);",
+          "const { TextField, CurrencyField, CheckboxField } = createFormFields(React);",
+          "",
+          `export function Example() {
+  const [open, setOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState({
+    name: "Summer Campaign",
+    owner: "Marketing",
+    budget: "12000",
+    active: true,
+  });
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Edit campaign</Button>
+      {open ? (
+        <PopupForm
+          title="Edit campaign"
+          subtitle="Update campaign details, then save."
+          onClose={() => setOpen(false)}
+          onSubmit={(event) => {
+            event.preventDefault();
+            setOpen(false);
+          }}
+          footer={
+            <>
+              <Button type="submit">Save changes</Button>
+              <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          <TextField
+            htmlFor="name"
+            label="Name"
+            value={draft.name}
+            onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
+          />
+          <TextField
+            htmlFor="owner"
+            label="Owner"
+            value={draft.owner}
+            onChange={(event) => setDraft((current) => ({ ...current, owner: event.target.value }))}
+          />
+          <CurrencyField
+            htmlFor="budget"
+            label="Budget"
+            prefix="R"
+            value={draft.budget}
+            onChange={(event) => setDraft((current) => ({ ...current, budget: event.target.value }))}
+          />
+          <CheckboxField
+            checked={draft.active}
+            label="Active"
+            onChange={(event) => setDraft((current) => ({ ...current, active: event.target.checked }))}
+          />
+        </PopupForm>
+      ) : null}
+    </>
+  );
+}`,
+        ].join("\n"),
+        Example: PopupFormExample,
       },
     ],
   },

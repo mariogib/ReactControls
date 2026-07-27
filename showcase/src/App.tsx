@@ -10,6 +10,7 @@ import {
   createEmptyState,
   createFormFields,
   createModalDialog,
+  createPopupForm,
   createPageHero,
   createPanelSection,
   createSessionInfo,
@@ -44,8 +45,16 @@ type ConfigKey =
   | "checkboxField"
   | "dataTable"
   | "emptyState"
-  | "modalDialog";
+  | "modalDialog"
+  | "popupForm";
 type FieldVariant = "form-group" | "field";
+type PopupDemoRow = {
+  id: string;
+  name: string;
+  owner: string;
+  budget: string;
+  active: boolean;
+};
 
 const AdminShell = createAdminShell(React, NavLink);
 const Button = createButton(React);
@@ -54,6 +63,7 @@ const BrowseListControls = createBrowseListControls(React);
 const DataTable = createDataTable(React);
 const EmptyState = createEmptyState(React);
 const ModalDialog = createModalDialog(React);
+const PopupForm = createPopupForm(React);
 const PageHero = createPageHero(React);
 const PanelSection = createPanelSection(React);
 const SessionInfo = createSessionInfo(React);
@@ -394,6 +404,13 @@ const emptyStateWrapperOptions = [
 function ShowcaseContent() {
   const [activeConfig, setActiveConfig] = React.useState<ConfigKey | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [popupMode, setPopupMode] = React.useState<"create" | "edit" | null>(null);
+  const [popupEditingId, setPopupEditingId] = React.useState<string | null>(null);
+  const [popupDraft, setPopupDraft] = React.useState({ name: "", owner: "", budget: "0", active: true });
+  const [popupRows, setPopupRows] = React.useState<PopupDemoRow[]>([
+    { id: "1", name: "Summer Campaign", owner: "Marketing", budget: "12000", active: true },
+    { id: "2", name: "Loyalty Bonus", owner: "Growth", budget: "4500", active: false },
+  ]);
   const [buttonConfig, setButtonConfig] = React.useState({ className: "", disabled: false, label: "Primary Action", type: "button" as const, variant: "primary" as const });
   const [statusBadgeConfig, setStatusBadgeConfig] = React.useState({ status: "active" });
   const [statusMessageConfig, setStatusMessageConfig] = React.useState({ className: "", detail: "The shared status message component is reusable across apps.", title: "Success", tone: "success" as const });
@@ -423,6 +440,14 @@ function ShowcaseContent() {
   const [dataTableConfig, setDataTableConfig] = React.useState({ headersText: "Name|Status|Updated", rowsText: "Prize Supplier A|Active|09 Jun 2026\nPrize Supplier B|Inactive|08 Jun 2026" });
   const [emptyStateConfig, setEmptyStateConfig] = React.useState({ as: "div" as "div" | "section", className: "", detail: "This is the shared empty-state presentation.", framed: false, title: "No records found" });
   const [modalConfig, setModalConfig] = React.useState({ body: "Future apps can consume the same modal structure and styling without redefining the layout.", footerLabel: "Close", showCloseButton: true, subtitle: "This is rendered from frontend-shared", title: "Shared Modal Example" });
+  const [popupFormConfig, setPopupFormConfig] = React.useState({
+    closeOnOverlayClick: true,
+    createSubtitle: "Register a tracked campaign with owner and budget.",
+    createTitle: "New campaign",
+    draggable: true,
+    editSubtitle: "Update campaign details, then save.",
+    editTitle: "Edit campaign",
+  });
   const [defaultBrowseView, setDefaultBrowseView] = React.useState<"table" | "grid" | "calendar">("grid");
   const [defaultSearchValue, setDefaultSearchValue] = React.useState("");
   const [opsBrowseView, setOpsBrowseView] = React.useState<"table" | "grid" | "calendar">("table");
@@ -551,6 +576,64 @@ function ShowcaseContent() {
 
   function closeConfigModal() {
     setActiveConfig(null);
+  }
+
+  function openPopupCreate() {
+    setPopupEditingId(null);
+    setPopupDraft({ name: "", owner: "", budget: "0", active: true });
+    setPopupMode("create");
+  }
+
+  function openPopupEdit(row: PopupDemoRow) {
+    setPopupEditingId(row.id);
+    setPopupDraft({
+      name: row.name,
+      owner: row.owner,
+      budget: row.budget,
+      active: row.active,
+    });
+    setPopupMode("edit");
+  }
+
+  function closePopupForm() {
+    setPopupMode(null);
+    setPopupEditingId(null);
+  }
+
+  function savePopupForm(event: { preventDefault: () => void }) {
+    event.preventDefault();
+    if (!popupDraft.name.trim()) {
+      return;
+    }
+
+    if (popupMode === "create") {
+      setPopupRows((current) => [
+        ...current,
+        {
+          id: String(Date.now()),
+          name: popupDraft.name.trim(),
+          owner: popupDraft.owner.trim() || "Unassigned",
+          budget: popupDraft.budget || "0",
+          active: popupDraft.active,
+        },
+      ]);
+    } else if (popupMode === "edit" && popupEditingId) {
+      setPopupRows((current) =>
+        current.map((row) =>
+          row.id === popupEditingId
+            ? {
+                ...row,
+                name: popupDraft.name.trim(),
+                owner: popupDraft.owner.trim() || "Unassigned",
+                budget: popupDraft.budget || "0",
+                active: popupDraft.active,
+              }
+            : row,
+        ),
+      );
+    }
+
+    closePopupForm();
   }
 
   function showPreviousCalendarMonth() {
@@ -1298,6 +1381,43 @@ export function Example() {
             </div>
           </FloatingPanel>
         );
+      case "popupForm":
+        return (
+          <FloatingPanel title="Configure PopupForm" subtitle="Tune create/edit titles and drag/overlay close behavior for the popup form demos." onClose={closeConfigModal} footer={<Button onClick={closeConfigModal}>Done</Button>} codePreview={buildComponentExample('import { PopupForm, Button, TextField } from "../components";', `export function Example() {
+  return (
+    <PopupForm\n+      ${joinProps([
+            renderProp("title", popupFormConfig.editTitle),
+            renderProp("subtitle", popupFormConfig.editSubtitle),
+            renderProp("draggable", popupFormConfig.draggable, "boolean"),
+            renderProp("closeOnOverlayClick", popupFormConfig.closeOnOverlayClick, "boolean"),
+            `onClose={() => setOpen(false)}`,
+            `onSubmit={(event) => { event.preventDefault(); setOpen(false); }}`,
+            `footer={<><Button type="submit">Save changes</Button><Button type="button" variant="secondary">Cancel</Button></>}`,
+      ])}\n+    >\n+      <TextField htmlFor="name" label="Name" value={draft.name} onChange={...} />\n+    </PopupForm>
+  );
+}`)}>
+            <div className="showcase-property-grid">
+              <PropertyEditor label="Create Title" description="Title bar text when opening New campaign.">
+                <TextField htmlFor="popup-create-title" label="Create Title" value={popupFormConfig.createTitle} onChange={(event: InputChangeEvent) => setPopupFormConfig((current) => ({ ...current, createTitle: event.target.value }))} />
+              </PropertyEditor>
+              <PropertyEditor label="Create Subtitle" description="Supporting line under the create title.">
+                <TextField htmlFor="popup-create-subtitle" label="Create Subtitle" value={popupFormConfig.createSubtitle} onChange={(event: InputChangeEvent) => setPopupFormConfig((current) => ({ ...current, createSubtitle: event.target.value }))} />
+              </PropertyEditor>
+              <PropertyEditor label="Edit Title" description="Title bar text when editing a row.">
+                <TextField htmlFor="popup-edit-title" label="Edit Title" value={popupFormConfig.editTitle} onChange={(event: InputChangeEvent) => setPopupFormConfig((current) => ({ ...current, editTitle: event.target.value }))} />
+              </PropertyEditor>
+              <PropertyEditor label="Edit Subtitle" description="Supporting line under the edit title.">
+                <TextField htmlFor="popup-edit-subtitle" label="Edit Subtitle" value={popupFormConfig.editSubtitle} onChange={(event: InputChangeEvent) => setPopupFormConfig((current) => ({ ...current, editSubtitle: event.target.value }))} />
+              </PropertyEditor>
+              <PropertyEditor label="Draggable" description="Allow dragging the popup from the title bar.">
+                <CheckboxField checked={popupFormConfig.draggable} label="Draggable" onChange={(event: InputChangeEvent) => setPopupFormConfig((current) => ({ ...current, draggable: event.target.checked }))} />
+              </PropertyEditor>
+              <PropertyEditor label="Close On Overlay Click" description="Dismiss the popup when the dimmed overlay is clicked.">
+                <CheckboxField checked={popupFormConfig.closeOnOverlayClick} label="Close On Overlay Click" onChange={(event: InputChangeEvent) => setPopupFormConfig((current) => ({ ...current, closeOnOverlayClick: event.target.checked }))} />
+              </PropertyEditor>
+            </div>
+          </FloatingPanel>
+        );
       default:
         return null;
     }
@@ -1763,6 +1883,47 @@ export function Example() {
         </div>
       </PanelSection>
 
+      <PanelSection eyebrow="Overlay" title="PopupForm" meta="Create / edit shell" compact actions={<ConfigTrigger onClick={() => setActiveConfig("popupForm")} />}>
+        <p className="showcase-copy">
+          Use PopupForm for draggable create and edit dialogs with a title bar, Escape/overlay dismiss, and a submit footer.
+        </p>
+        <div className="showcase-action-row">
+          <Button onClick={openPopupCreate}>New campaign</Button>
+        </div>
+        <div className="browse-table-wrap">
+          <table className="browse-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Budget</th>
+                <th>Status</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {popupRows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <div className="browse-table-primary">{row.name}</div>
+                  </td>
+                  <td>{row.owner}</td>
+                  <td>{row.budget}</td>
+                  <td>
+                    <StatusBadge status={row.active ? "active" : "inactive"} />
+                  </td>
+                  <td>
+                    <Button variant="secondary" onClick={() => openPopupEdit(row)}>
+                      Edit
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </PanelSection>
+
       {isModalOpen ? (
         <ModalDialog
           title={modalConfig.title}
@@ -1773,6 +1934,61 @@ export function Example() {
         >
           <p className="showcase-copy">{modalConfig.body}</p>
         </ModalDialog>
+      ) : null}
+
+      {popupMode ? (
+        <PopupForm
+          title={popupMode === "create" ? popupFormConfig.createTitle : popupFormConfig.editTitle}
+          subtitle={popupMode === "create" ? popupFormConfig.createSubtitle : popupFormConfig.editSubtitle}
+          onClose={closePopupForm}
+          onSubmit={savePopupForm}
+          draggable={popupFormConfig.draggable}
+          closeOnOverlayClick={popupFormConfig.closeOnOverlayClick}
+          footer={
+            <>
+              <Button type="submit">{popupMode === "create" ? "Create" : "Save changes"}</Button>
+              <Button type="button" variant="secondary" onClick={closePopupForm}>
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          <div className="showcase-control-grid">
+            <TextField
+              htmlFor="showcase-popup-name"
+              label="Name"
+              required
+              value={popupDraft.name}
+              onChange={(event: InputChangeEvent) =>
+                setPopupDraft((current) => ({ ...current, name: event.target.value }))
+              }
+            />
+            <TextField
+              htmlFor="showcase-popup-owner"
+              label="Owner"
+              value={popupDraft.owner}
+              onChange={(event: InputChangeEvent) =>
+                setPopupDraft((current) => ({ ...current, owner: event.target.value }))
+              }
+            />
+            <CurrencyField
+              htmlFor="showcase-popup-budget"
+              label="Budget"
+              prefix="R"
+              value={popupDraft.budget}
+              onChange={(event: InputChangeEvent) =>
+                setPopupDraft((current) => ({ ...current, budget: event.target.value }))
+              }
+            />
+            <CheckboxField
+              checked={popupDraft.active}
+              label="Active"
+              onChange={(event: InputChangeEvent) =>
+                setPopupDraft((current) => ({ ...current, active: event.target.checked }))
+              }
+            />
+          </div>
+        </PopupForm>
       ) : null}
 
       {renderConfigModal()}

@@ -1,6 +1,6 @@
 {
   "name": "@lunarq/frontend-shared",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Shared frontend platform assets for LunarQ applications",
   "private": true,
   "type": "module",
