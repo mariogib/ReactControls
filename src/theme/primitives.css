@@ -9,8 +9,10 @@
   border: 1px solid var(--border-color);
   background: var(--card-bg);
   color: var(--text-color);
-  border-radius: 0.5rem;
-  padding: 0.625rem 1rem;
+  border-radius: var(--radius-md, 0.5rem);
+  padding: var(--control-padding-y, 0.625rem) var(--control-padding-x, 1rem);
+  min-height: var(--control-height, auto);
+  font-size: var(--font-size-body, inherit);
   cursor: pointer;
 }
 
@@ -45,8 +47,8 @@
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg, 1rem);
+  box-shadow: var(--elevation-card, var(--shadow));
 }
 
 .table-shell {
@@ -72,7 +74,7 @@
   margin-bottom: 1.5rem;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 1.5rem;
+  border-radius: var(--radius-xl, 1.5rem);
 }
 
 .hero-copy,
@@ -102,7 +104,7 @@
 }
 
 .status-message {
-  border-radius: 1rem;
+  border-radius: var(--radius-lg, 1rem);
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
 }
@@ -135,7 +137,7 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-circular, 999px);
   padding: 0.25rem 0.625rem;
   font-size: 0.8rem;
   font-weight: 600;

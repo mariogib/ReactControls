@@ -39,9 +39,9 @@ After install, import from the published entrypoints below. The package builds t
 - `@lunarq/frontend-shared/hooks`
   Shared async, form, and filtering hook factories.
 - `@lunarq/frontend-shared/theme`
-  Theme API helpers, presets (`LunarQ`, `Midnight`), and `createThemeButton`.
+  Theme API helpers, LunarQ + Microsoft Fluent presets, and `createThemeButton`.
 - `@lunarq/frontend-shared/theme/index.css`
-  Shared design tokens, primitive CSS, and theme button styles.
+  Shared design tokens, look-and-feel chrome, primitive CSS, and theme button styles.
 - `@lunarq/frontend-shared/components/index.css`
   Shared component-level CSS primitives, including the report layout shell and browse list controls.
 - `@lunarq/frontend-shared/admin/index.css`
@@ -262,7 +262,7 @@ import {
 } from "@lunarq/frontend-shared/theme";
 
 const ThemeButton = createThemeButton(React, {
-  themes: BUILTIN_THEME_PRESETS, // LunarQ + Midnight
+  themes: BUILTIN_THEME_PRESETS, // LunarQ + Fluent look-and-feels
   defaultThemeId: "lunarq",
   storageKey: "my-app-theme-id",
 });
@@ -276,6 +276,7 @@ const ThemeButtonWithCustom = createThemeButton(React, {
       id: "brand",
       label: "Brand",
       swatch: "#8b5cf6",
+      lookAndFeel: "lunarq",
       description: "App-specific override",
       theme: { ...LUNARQ_THEME_PRESET.theme, primaryColor: "#8b5cf6", tenantId: "brand" },
     },
@@ -283,6 +284,7 @@ const ThemeButtonWithCustom = createThemeButton(React, {
 });
 ```
 
+Switch look-and-feel from the same ThemeButton menu: presets are grouped under **LunarQ** and **Microsoft Fluent** (`fluent`, `fluent-dark`). Selecting a preset applies CSS variables, sets `data-theme` / `data-look-and-feel`, and persists the id.
 ```ts
 import React from "react";
 import { createRegistryResourcePage } from "@lunarq/frontend-shared";

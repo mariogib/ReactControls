@@ -1,4 +1,5 @@
 export * from "./createAdminShell.js";
+export * from "./fluentNavIcons.js";
 export * from "./createUseAdminUser.js";
 export * from "./PageLoadOverlay.js";
 export * from "./sessionAccess.js";

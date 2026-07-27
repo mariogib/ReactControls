@@ -34,12 +34,14 @@ type InternalAdminNavItem = {
 
 export type AdminNavLeaf = {
   label: string;
-  icon: string;
+  /** Glyph, emoji, or Fluent SVG node (`createFluentNavIcons`). */
+  icon: ReactNodeLike;
 } & (InternalAdminNavItem | ExternalAdminNavItem);
 
 export type AdminNavGroup = {
   label: string;
-  icon: string;
+  /** Glyph, emoji, or Fluent SVG node (`createFluentNavIcons`). */
+  icon: ReactNodeLike;
   children: AdminNavLeaf[];
   /** When true, the submenu starts expanded. Defaults to true. */
   defaultOpen?: boolean;

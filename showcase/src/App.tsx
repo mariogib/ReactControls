@@ -8,6 +8,7 @@ import {
   createBrowseListControls,
   createDataTable,
   createEmptyState,
+  createFluentNavIcons,
   createFormFields,
   createModalDialog,
   createPopupForm,
@@ -17,12 +18,14 @@ import {
   createStatsGrid,
   createStatusBadge,
   createStatusMessage,
+  createThemeButton,
   createUseAdminUser,
   type AdminNavItem,
 } from "@lunarq/frontend-shared";
 import "@lunarq/frontend-shared/admin/index.css";
 import "./showcase.css";
 
+const fluentIcons = createFluentNavIcons(React);
 type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
 type SelectChangeEvent = React.ChangeEvent<HTMLSelectElement>;
 type TextAreaChangeEvent = React.ChangeEvent<HTMLTextAreaElement>;
@@ -70,6 +73,10 @@ const SessionInfo = createSessionInfo(React);
 const StatsGrid = createStatsGrid(React);
 const StatusBadge = createStatusBadge(React);
 const StatusMessage = createStatusMessage(React);
+const ThemeButton = createThemeButton(React, {
+  defaultThemeId: "lunarq",
+  storageKey: "showcase-theme-id",
+});
 const useAdminUser = createUseAdminUser(React);
 const { TextField, SelectField: ShowcaseSelectField, TextAreaField, NumberField, DateField, TimeField, DateTimeField, CurrencyField, CheckboxField } = createFormFields(React);
 
@@ -326,7 +333,7 @@ function renderOptionNodes(options: ReadonlyArray<{ label: string; value: string
   }, option.label));
 }
 
-const navItems: AdminNavItem[] = [
+const lunarqNavItems: AdminNavItem[] = [
   { to: "/app", end: true, label: "Overview", icon: "📊" },
   {
     to: "/app/help",
@@ -346,6 +353,45 @@ const navItems: AdminNavItem[] = [
   { to: "/app/settings", label: "Settings", icon: "⚙️" },
 ];
 
+const fluentNavItems: AdminNavItem[] = [
+  { to: "/app", end: true, label: "Overview", icon: fluentIcons.overview },
+  {
+    to: "/app/help",
+    label: "Help",
+    icon: fluentIcons.help,
+    children: [
+      { to: "/app/help/components", label: "Components", icon: fluentIcons.components },
+      { to: "/app/help/hooks", label: "Hooks", icon: fluentIcons.hooks },
+      { to: "/app/help/theme", label: "Theme", icon: fluentIcons.theme },
+      { to: "/app/help/admin", label: "Admin", icon: fluentIcons.admin },
+      { to: "/app/help/auth", label: "Auth", icon: fluentIcons.auth },
+      { to: "/app/help/maintenance", label: "Maintenance", icon: fluentIcons.maintenance },
+      { to: "/app/help/utils", label: "Utils", icon: fluentIcons.utils },
+    ],
+  },
+  { to: "/app/reports", label: "Reports", icon: fluentIcons.reports },
+  { to: "/app/settings", label: "Settings", icon: fluentIcons.settings },
+];
+
+function readLookAndFeel(): "lunarq" | "fluent" {
+  if (typeof document === "undefined") {
+    return "lunarq";
+  }
+  return document.documentElement.dataset.lookAndFeel === "fluent" ? "fluent" : "lunarq";
+}
+
+function useLookAndFeel(): "lunarq" | "fluent" {
+  const [lookAndFeel, setLookAndFeel] = React.useState<"lunarq" | "fluent">(readLookAndFeel);
+  React.useEffect(() => {
+    function sync() {
+      setLookAndFeel(readLookAndFeel());
+    }
+    sync();
+    document.addEventListener("lunarq:themechange", sync);
+    return () => document.removeEventListener("lunarq:themechange", sync);
+  }, []);
+  return lookAndFeel;
+}
 const mockUserManager = {
   async getUser() {
     return {
@@ -1997,6 +2043,11 @@ export function Example() {
 }
 
 export default function App() {
+  const lookAndFeel = useLookAndFeel();
+  const navItems = React.useMemo(
+    () => (lookAndFeel === "fluent" ? fluentNavItems : lunarqNavItems),
+    [lookAndFeel],
+  );
   const { userName, userEmail } = useAdminUser(async () => ({
     name: "System Administrator",
     email: "admin@lunarq.com",
@@ -2030,6 +2081,7 @@ export default function App() {
             })}
           />
         }
+        topBarActions={<ThemeButton />}
         userName={userName}
         userEmail={userEmail}
         onSignOut={() => undefined}

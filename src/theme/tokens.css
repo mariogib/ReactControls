@@ -10,4 +10,6 @@
   --text-muted: #d1d5db;
   --border-color: #4b5563;
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  --font-sans: var(--font-family-ui, "Segoe UI", system-ui, sans-serif);
+  --font-mono: var(--font-family-mono, ui-monospace, monospace);
 }

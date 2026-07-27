@@ -3,6 +3,7 @@ import { applyThemeVariables } from "./themeApi.js";
 import {
   applyThemePreset,
   BUILTIN_THEME_PRESETS,
+  groupThemePresetsByLookAndFeel,
   readStoredThemeId,
   resolveThemePreset,
   type ThemePreset,
@@ -34,7 +35,10 @@ export interface ThemeButtonProps {
 }
 
 export interface CreateThemeButtonOptions {
-  /** Themes offered in the menu. Defaults to LunarQ + Midnight. */
+  /**
+   * Themes offered in the menu. Defaults to LunarQ + Fluent builtins.
+   * Presets with different `lookAndFeel` values are grouped in the menu.
+   */
   themes?: ThemePreset[];
   /** Used when nothing is stored yet. */
   defaultThemeId?: string;
@@ -48,6 +52,8 @@ export interface CreateThemeButtonOptions {
   onThemeChange?: (preset: ThemePreset) => void;
   /** Apply the resolved theme immediately when the button mounts. */
   applyOnMount?: boolean;
+  /** Show LunarQ / Fluent section headers when multiple look-and-feels are present. */
+  groupByLookAndFeel?: boolean;
 }
 
 export function createThemeButton(
@@ -60,6 +66,7 @@ export function createThemeButton(
     formatButtonLabel = (preset) => preset.label,
     onThemeChange,
     applyOnMount = true,
+    groupByLookAndFeel = true,
   }: CreateThemeButtonOptions = {},
 ) {
   function resolveInitialPreset(): ThemePreset {
@@ -72,7 +79,7 @@ export function createThemeButton(
     menuClassName = "",
     disabled = false,
     buttonLabel,
-    "aria-label": ariaLabel = "Select theme",
+    "aria-label": ariaLabel = "Select look and feel",
   }: ThemeButtonProps = {}) {
     const rootRef = react.useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = react.useState(false);
@@ -122,10 +129,44 @@ export function createThemeButton(
       setOpen(false);
     }
 
+    function renderOption(preset: ThemePreset) {
+      const isActive = preset.id === activePreset.id;
+      return react.createElement(
+        "button",
+        {
+          key: preset.id,
+          type: "button",
+          role: "option",
+          "aria-selected": isActive,
+          className: `theme-button-option${isActive ? " is-active" : ""}`,
+          onClick: () => selectTheme(preset),
+        },
+        react.createElement("span", {
+          className: "theme-button-swatch",
+          style: { background: preset.swatch },
+          "aria-hidden": "true",
+        }),
+        react.createElement(
+          "span",
+          { className: "theme-button-option-copy" },
+          react.createElement("span", { className: "theme-button-option-label" }, preset.label),
+          preset.description
+            ? react.createElement(
+                "span",
+                { className: "theme-button-option-description" },
+                preset.description,
+              )
+            : null,
+        ),
+      );
+    }
+
     const label = buttonLabel ?? formatButtonLabel(activePreset);
     const rootClassName = ["theme-button", open ? "is-open" : "", className]
       .filter(Boolean)
       .join(" ");
+    const groups = groupByLookAndFeel ? groupThemePresetsByLookAndFeel(themes) : null;
+    const showGroupLabels = Boolean(groups && groups.length > 1);
 
     return react.createElement(
       "div",
@@ -157,37 +198,25 @@ export function createThemeButton(
               role: "listbox",
               "aria-label": ariaLabel,
             },
-            ...themes.map((preset) => {
-              const isActive = preset.id === activePreset.id;
-              return react.createElement(
-                "button",
-                {
-                  key: preset.id,
-                  type: "button",
-                  role: "option",
-                  "aria-selected": isActive,
-                  className: `theme-button-option${isActive ? " is-active" : ""}`,
-                  onClick: () => selectTheme(preset),
-                },
-                react.createElement("span", {
-                  className: "theme-button-swatch",
-                  style: { background: preset.swatch },
-                  "aria-hidden": "true",
-                }),
-                react.createElement(
-                  "span",
-                  { className: "theme-button-option-copy" },
-                  react.createElement("span", { className: "theme-button-option-label" }, preset.label),
-                  preset.description
-                    ? react.createElement(
-                        "span",
-                        { className: "theme-button-option-description" },
-                        preset.description,
-                      )
-                    : null,
-                ),
-              );
-            }),
+            ...(showGroupLabels && groups
+              ? groups.map((group) =>
+                  react.createElement(
+                    "div",
+                    {
+                      key: group.lookAndFeel,
+                      className: "theme-button-group",
+                      role: "group",
+                      "aria-label": group.label,
+                    },
+                    react.createElement(
+                      "p",
+                      { className: "theme-button-group-label" },
+                      group.label,
+                    ),
+                    ...group.themes.map(renderOption),
+                  ),
+                )
+              : themes.map(renderOption)),
           )
         : null,
     );

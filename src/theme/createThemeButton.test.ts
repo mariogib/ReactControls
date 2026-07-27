@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createThemeButton } from "./createThemeButton.js";
-import { MIDNIGHT_THEME_PRESET, LUNARQ_THEME_PRESET } from "./themePresets.js";
+import { MIDNIGHT_THEME_PRESET, LUNARQ_THEME_PRESET, FLUENT_THEME_PRESET } from "./themePresets.js";
 
 type FakeNode = {
   type: any;
@@ -86,16 +86,22 @@ function findByClass(node: FakeNode, className: string): FakeNode | null {
 }
 
 function findOptionByLabel(menu: FakeNode, label: string): FakeNode | null {
-  for (const child of menu.children) {
-    if (!child || typeof child !== "object") {
-      continue;
+  function walk(node: FakeNode): FakeNode | null {
+    const className = typeof node.props.className === "string" ? node.props.className : "";
+    if (className.split(/\s+/).includes("theme-button-option") && collectText(node).includes(label)) {
+      return node;
     }
-    const option = child as FakeNode;
-    if (collectText(option).includes(label)) {
-      return option;
+    for (const child of node.children) {
+      if (child && typeof child === "object" && "props" in (child as FakeNode)) {
+        const match = walk(child as FakeNode);
+        if (match) {
+          return match;
+        }
+      }
     }
+    return null;
   }
-  return null;
+  return walk(menu);
 }
 
 test("createThemeButton renders current theme label and opens menu options", () => {
@@ -127,4 +133,29 @@ test("createThemeButton renders current theme label and opens menu options", () 
   assert.ok(midnightOption);
   (midnightOption?.props.onClick as () => void)();
   assert.equal(applied.at(-1), "#3fb950");
+});
+
+test("createThemeButton groups LunarQ and Fluent look-and-feels", () => {
+  const { react, resetRender } = createFakeReact();
+  const ThemeButton = createThemeButton(react as any, {
+    themes: [LUNARQ_THEME_PRESET, FLUENT_THEME_PRESET],
+    defaultThemeId: "lunarq",
+    storageKey: null,
+    applyOnMount: false,
+  });
+
+  resetRender();
+  const closed = ThemeButton({}) as FakeNode;
+  const trigger = findByClass(closed, "theme-button-trigger");
+  assert.ok(trigger);
+  (trigger?.props.onClick as () => void)();
+
+  resetRender();
+  const openTree = ThemeButton({}) as FakeNode;
+  const menu = findByClass(openTree, "theme-button-menu");
+  assert.ok(menu);
+  assert.match(collectText(menu), /Microsoft Fluent/);
+  assert.match(collectText(menu), /LunarQ/);
+  const fluentOption = findOptionByLabel(menu as FakeNode, "Fluent");
+  assert.ok(fluentOption);
 });

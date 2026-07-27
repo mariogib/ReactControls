@@ -1,6 +1,8 @@
 import React from "react";
 import {
   BUILTIN_THEME_PRESETS,
+  FLUENT_DARK_THEME_PRESET,
+  FLUENT_THEME_PRESET,
   MIDNIGHT_THEME_PRESET,
   LUNARQ_LIGHT_THEME_PRESET,
   LUNARQ_THEME_PRESET,
@@ -22,7 +24,8 @@ function ThemeButtonExample() {
   return (
     <div className="showcase-stack" style={{ padding: 0 }}>
       <p className="showcase-copy">
-        ThemeButton persists the selected preset and applies CSS variables.
+        ThemeButton persists the selected preset and switches between LunarQ and Microsoft Fluent
+        look-and-feel groups.
       </p>
       <ThemeButton />
     </div>
@@ -32,11 +35,18 @@ function ThemeButtonExample() {
 function ThemePresetsExample() {
   const [activeId, setActiveId] = React.useState(LUNARQ_THEME_PRESET.id);
   const active = getThemePresetById(activeId) ?? LUNARQ_THEME_PRESET;
+  const presets = [
+    LUNARQ_THEME_PRESET,
+    LUNARQ_LIGHT_THEME_PRESET,
+    MIDNIGHT_THEME_PRESET,
+    FLUENT_THEME_PRESET,
+    FLUENT_DARK_THEME_PRESET,
+  ];
 
   return (
     <div className="showcase-stack" style={{ padding: 0 }}>
       <div className="showcase-action-row">
-        {[LUNARQ_THEME_PRESET, LUNARQ_LIGHT_THEME_PRESET, MIDNIGHT_THEME_PRESET].map((preset) => (
+        {presets.map((preset) => (
           <button
             key={preset.id}
             type="button"
@@ -55,6 +65,7 @@ function ThemePresetsExample() {
           {
             id: active.id,
             label: active.label,
+            lookAndFeel: active.lookAndFeel ?? "lunarq",
             primary: active.theme.primaryColor,
             background: active.theme.bgColor,
           },
@@ -67,11 +78,11 @@ function ThemePresetsExample() {
 }
 
 function ResolveThemePresetExample() {
-  const resolved = resolveThemePreset("midnight", BUILTIN_THEME_PRESETS, "lunarq");
+  const resolved = resolveThemePreset("fluent", BUILTIN_THEME_PRESETS, "lunarq");
   return (
     <div className="showcase-stack" style={{ padding: 0 }}>
       <p className="showcase-copy">
-        resolveThemePreset("midnight") → <strong>{resolved.label}</strong>
+        resolveThemePreset("fluent") → <strong>{resolved.label}</strong>
       </p>
       <pre className="showcase-code-block">{JSON.stringify(resolved.theme, null, 2)}</pre>
     </div>
@@ -87,7 +98,8 @@ export const THEME_HELP_GROUPS: HelpGroup[] = [
       {
         id: "themeButton",
         title: "ThemeButton",
-        description: "Preset picker with localStorage persistence and CSS variable application.",
+        description:
+          "Preset picker with LunarQ / Fluent look-and-feel groups. Fluent also switches type ramp, 4px spacing, radii, nav density, and control heights.",
         code: snippetCode(
           'import { createThemeButton, BUILTIN_THEME_PRESETS } from "@lunarq/frontend-shared";',
           `const ThemeButton = createThemeButton(React, {
@@ -105,14 +117,14 @@ export const THEME_HELP_GROUPS: HelpGroup[] = [
         id: "themePresets",
         title: "Theme presets",
         description:
-          "LUNARQ_THEME_PRESET, LUNARQ_LIGHT_THEME_PRESET, MIDNIGHT_THEME_PRESET, and applyThemePreset helpers.",
+          "LunarQ, LunarQ Light, Midnight, Fluent, and Fluent Dark. Fluent presets set data-look-and-feel for layout/type chrome.",
         code: snippetCode(
-          'import { LUNARQ_THEME_PRESET, LUNARQ_LIGHT_THEME_PRESET, MIDNIGHT_THEME_PRESET, applyThemePreset } from "@lunarq/frontend-shared";',
+          'import { FLUENT_THEME_PRESET, LUNARQ_THEME_PRESET, applyThemePreset } from "@lunarq/frontend-shared";',
           "",
           `export function Example() {
   return (
-    <button onClick={() => applyThemePreset(MIDNIGHT_THEME_PRESET)}>
-      Use {MIDNIGHT_THEME_PRESET.label}
+    <button onClick={() => applyThemePreset(FLUENT_THEME_PRESET)}>
+      Use {FLUENT_THEME_PRESET.label}
     </button>
   );
 }`,
@@ -126,7 +138,7 @@ export const THEME_HELP_GROUPS: HelpGroup[] = [
         code: snippetCode(
           'import { resolveThemePreset, BUILTIN_THEME_PRESETS } from "@lunarq/frontend-shared";',
           "",
-          `const preset = resolveThemePreset("midnight", BUILTIN_THEME_PRESETS, "lunarq");`,
+          `const preset = resolveThemePreset("fluent", BUILTIN_THEME_PRESETS, "lunarq");`,
         ),
         Example: ResolveThemePresetExample,
       },

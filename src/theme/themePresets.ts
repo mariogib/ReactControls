@@ -3,6 +3,9 @@ import { applyThemeVariables } from "./themeApi.js";
 
 export type ThemeColorScheme = "light" | "dark";
 
+/** Visual family shown as a section header in ThemeButton. */
+export type ThemeLookAndFeel = "lunarq" | "fluent";
+
 export interface ThemePreset {
   id: string;
   label: string;
@@ -11,8 +14,18 @@ export interface ThemePreset {
   swatch: string;
   /** Controls `document.documentElement.style.colorScheme` for native form chrome. */
   colorScheme?: ThemeColorScheme;
+  /**
+   * Look-and-feel family for menu grouping (LunarQ vs Fluent).
+   * Defaults to `"lunarq"` when omitted.
+   */
+  lookAndFeel?: ThemeLookAndFeel;
   theme: ThemeResponseBase;
 }
+
+export const THEME_LOOK_AND_FEEL_LABELS: Record<ThemeLookAndFeel, string> = {
+  lunarq: "LunarQ",
+  fluent: "Microsoft Fluent",
+};
 
 /** Current LunarQ admin shell palette (`theme/tokens.css`). */
 export const LUNARQ_THEME_PRESET: ThemePreset = {
@@ -21,6 +34,7 @@ export const LUNARQ_THEME_PRESET: ThemePreset = {
   description: "Default LunarQ admin palette",
   swatch: "#f97316",
   colorScheme: "dark",
+  lookAndFeel: "lunarq",
   theme: {
     tenantId: "lunarq",
     tenantName: "LunarQ",
@@ -51,6 +65,7 @@ export const LUNARQ_LIGHT_THEME_PRESET: ThemePreset = {
   description: "Silver surfaces with slate-blue accents from the LunarQ icon",
   swatch: "#2f4f78",
   colorScheme: "light",
+  lookAndFeel: "lunarq",
   theme: {
     tenantId: "lunarq-light",
     tenantName: "LunarQ Light",
@@ -77,6 +92,7 @@ export const MIDNIGHT_THEME_PRESET: ThemePreset = {
   description: "Near-black surfaces with emerald status accents",
   swatch: "#3fb950",
   colorScheme: "dark",
+  lookAndFeel: "lunarq",
   theme: {
     tenantId: "midnight",
     tenantName: "Midnight",
@@ -96,11 +112,101 @@ export const MIDNIGHT_THEME_PRESET: ThemePreset = {
   },
 };
 
+/**
+ * Microsoft Fluent Design 2 light palette — Segoe-friendly neutrals and brand blue.
+ * Pair with `[data-theme='fluent']` look-and-feel CSS for radius/type.
+ */
+export const FLUENT_THEME_PRESET: ThemePreset = {
+  id: "fluent",
+  label: "Fluent",
+  description: "Microsoft Fluent light — brand blue on neutral surfaces",
+  swatch: "#0f6cbd",
+  colorScheme: "light",
+  lookAndFeel: "fluent",
+  theme: {
+    tenantId: "fluent",
+    tenantName: "Fluent",
+    companyName: "Fluent",
+    primaryColor: "#0f6cbd",
+    secondaryColor: "#115ea3",
+    successColor: "#0e700e",
+    dangerColor: "#b10e1c",
+    warningColor: "#8a3707",
+    bgColor: "#f5f5f5",
+    cardBgColor: "#ffffff",
+    textColor: "#242424",
+    textMutedColor: "#616161",
+    borderColor: "#d1d1d1",
+    shadowColor: "0 2px 8px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12)",
+    isDefault: true,
+  },
+};
+
+/**
+ * Microsoft Fluent Design 2 dark palette — elevated charcoal with light brand blue.
+ */
+export const FLUENT_DARK_THEME_PRESET: ThemePreset = {
+  id: "fluent-dark",
+  label: "Fluent Dark",
+  description: "Microsoft Fluent dark — charcoal surfaces with brand blue accents",
+  swatch: "#479ef5",
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    tenantId: "fluent-dark",
+    tenantName: "Fluent Dark",
+    companyName: "Fluent",
+    primaryColor: "#479ef5",
+    secondaryColor: "#62abf5",
+    successColor: "#54b054",
+    dangerColor: "#f1707b",
+    warningColor: "#fce100",
+    bgColor: "#1f1f1f",
+    cardBgColor: "#292929",
+    textColor: "#ffffff",
+    textMutedColor: "#adadad",
+    borderColor: "#666666",
+    shadowColor: "0 8px 16px rgba(0, 0, 0, 0.4), 0 0 2px rgba(0, 0, 0, 0.3)",
+    isDefault: true,
+  },
+};
+
 export const BUILTIN_THEME_PRESETS: ThemePreset[] = [
   LUNARQ_THEME_PRESET,
   LUNARQ_LIGHT_THEME_PRESET,
   MIDNIGHT_THEME_PRESET,
+  FLUENT_THEME_PRESET,
+  FLUENT_DARK_THEME_PRESET,
 ];
+
+export function resolveThemeLookAndFeel(preset: ThemePreset): ThemeLookAndFeel {
+  return preset.lookAndFeel === "fluent" ? "fluent" : "lunarq";
+}
+
+/** Group presets in ThemeButton order, preserving first-seen look-and-feel sequence. */
+export function groupThemePresetsByLookAndFeel(
+  themes: readonly ThemePreset[],
+): Array<{ lookAndFeel: ThemeLookAndFeel; label: string; themes: ThemePreset[] }> {
+  const groups: Array<{ lookAndFeel: ThemeLookAndFeel; label: string; themes: ThemePreset[] }> = [];
+  const indexByFeel = new Map<ThemeLookAndFeel, number>();
+
+  for (const preset of themes) {
+    const lookAndFeel = resolveThemeLookAndFeel(preset);
+    const existing = indexByFeel.get(lookAndFeel);
+    if (existing == null) {
+      indexByFeel.set(lookAndFeel, groups.length);
+      groups.push({
+        lookAndFeel,
+        label: THEME_LOOK_AND_FEEL_LABELS[lookAndFeel],
+        themes: [preset],
+      });
+      continue;
+    }
+    groups[existing]!.themes.push(preset);
+  }
+
+  return groups;
+}
 
 export function getThemePresetById(
   themeId: string,
@@ -149,7 +255,16 @@ export function applyThemePreset(
 
   if (typeof document !== "undefined") {
     document.documentElement.dataset.theme = preset.id;
+    document.documentElement.dataset.lookAndFeel = resolveThemeLookAndFeel(preset);
     document.documentElement.style.colorScheme = resolveThemeColorScheme(preset);
+    document.dispatchEvent(
+      new CustomEvent("lunarq:themechange", {
+        detail: {
+          themeId: preset.id,
+          lookAndFeel: resolveThemeLookAndFeel(preset),
+        },
+      }),
+    );
   }
 }
 
