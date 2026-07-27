@@ -857,3 +857,37 @@ body {
     align-items: stretch;
   }
 }
+
+/* Fluent polish for showcase modal shells (lookAndFeel.css also targets these). */
+[data-look-and-feel="fluent"] .modal-overlay,
+[data-theme="fluent"] .modal-overlay,
+[data-theme="fluent-dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+[data-look-and-feel="fluent"] .modal-content,
+[data-theme="fluent"] .modal-content,
+[data-theme="fluent-dark"] .modal-content {
+  border-radius: 8px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+
+[data-look-and-feel="fluent"] .modal-header,
+[data-theme="fluent"] .modal-header,
+[data-theme="fluent-dark"] .modal-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-look-and-feel="fluent"] .modal-body,
+[data-theme="fluent"] .modal-body,
+[data-theme="fluent-dark"] .modal-body {
+  padding: 16px 20px;
+}
+
+[data-look-and-feel="fluent"] .modal-footer,
+[data-theme="fluent"] .modal-footer,
+[data-theme="fluent-dark"] .modal-footer {
+  gap: 8px;
+  padding: 12px 20px 16px;
+}

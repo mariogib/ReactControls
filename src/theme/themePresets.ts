@@ -171,12 +171,103 @@ export const FLUENT_DARK_THEME_PRESET: ThemePreset = {
   },
 };
 
+/**
+ * Fluent structure with a dark metallic / gunmetal palette — brushed silver accents
+ * on deep steel surfaces (still `lookAndFeel: "fluent"`).
+ */
+export const FLUENT_METAL_THEME_PRESET: ThemePreset = {
+  id: "fluent-metal",
+  label: "Fluent Metal",
+  description: "Dark metallic Fluent — gunmetal surfaces with brushed silver accents",
+  swatch: "#b8c0cc",
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    tenantId: "fluent-metal",
+    tenantName: "Fluent Metal",
+    companyName: "Fluent",
+    primaryColor: "#b8c0cc",
+    secondaryColor: "#d4dae3",
+    successColor: "#7dbc96",
+    dangerColor: "#e08a8a",
+    warningColor: "#d4b45a",
+    bgColor: "#0e1012",
+    cardBgColor: "#1c1f24",
+    textColor: "#eef1f5",
+    textMutedColor: "#9aa3b0",
+    borderColor: "#4a515c",
+    shadowColor: "0 10px 28px rgba(0, 0, 0, 0.55), 0 0 1px rgba(184, 192, 204, 0.18)",
+    isDefault: true,
+  },
+};
+
+/**
+ * Fluent layout/type chrome with the classic LunarQ dark orange palette.
+ */
+export const FLUENT_LUNARQ_THEME_PRESET: ThemePreset = {
+  id: "fluent-lunarq",
+  label: "Fluent LunarQ",
+  description: "Fluent density and type with the LunarQ dark orange palette",
+  swatch: LUNARQ_THEME_PRESET.swatch,
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    ...LUNARQ_THEME_PRESET.theme,
+    tenantId: "fluent-lunarq",
+    tenantName: "Fluent LunarQ",
+    companyName: "LunarQ",
+  },
+};
+
+/**
+ * Fluent layout/type chrome with the LunarQ Light slate-blue palette.
+ */
+export const FLUENT_LUNARQ_LIGHT_THEME_PRESET: ThemePreset = {
+  id: "fluent-lunarq-light",
+  label: "Fluent LunarQ Light",
+  description: "Fluent density and type with the LunarQ Light slate-blue palette",
+  swatch: LUNARQ_LIGHT_THEME_PRESET.swatch,
+  colorScheme: "light",
+  lookAndFeel: "fluent",
+  theme: {
+    ...LUNARQ_LIGHT_THEME_PRESET.theme,
+    tenantId: "fluent-lunarq-light",
+    tenantName: "Fluent LunarQ Light",
+    companyName: "LunarQ",
+  },
+};
+
+/**
+ * Fluent chrome on LunarQ dark slate surfaces, with a cool blue accent
+ * that matches the gray-blue field (instead of LunarQ orange).
+ */
+export const FLUENT_LUNARQ_BLUE_THEME_PRESET: ThemePreset = {
+  id: "fluent-lunarq-blue",
+  label: "Fluent LunarQ Blue",
+  description: "LunarQ dark slate surfaces with a cool blue accent that fits the gray field",
+  swatch: "#5b9fd4",
+  colorScheme: "dark",
+  lookAndFeel: "fluent",
+  theme: {
+    ...LUNARQ_THEME_PRESET.theme,
+    tenantId: "fluent-lunarq-blue",
+    tenantName: "Fluent LunarQ Blue",
+    companyName: "LunarQ",
+    primaryColor: "#5b9fd4",
+    secondaryColor: "#7eb8e8",
+  },
+};
+
 export const BUILTIN_THEME_PRESETS: ThemePreset[] = [
   LUNARQ_THEME_PRESET,
   LUNARQ_LIGHT_THEME_PRESET,
   MIDNIGHT_THEME_PRESET,
   FLUENT_THEME_PRESET,
   FLUENT_DARK_THEME_PRESET,
+  FLUENT_METAL_THEME_PRESET,
+  FLUENT_LUNARQ_THEME_PRESET,
+  FLUENT_LUNARQ_LIGHT_THEME_PRESET,
+  FLUENT_LUNARQ_BLUE_THEME_PRESET,
 ];
 
 export function resolveThemeLookAndFeel(preset: ThemePreset): ThemeLookAndFeel {

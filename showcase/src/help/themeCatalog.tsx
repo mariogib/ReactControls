@@ -2,6 +2,10 @@ import React from "react";
 import {
   BUILTIN_THEME_PRESETS,
   FLUENT_DARK_THEME_PRESET,
+  FLUENT_LUNARQ_THEME_PRESET,
+  FLUENT_LUNARQ_LIGHT_THEME_PRESET,
+  FLUENT_LUNARQ_BLUE_THEME_PRESET,
+  FLUENT_METAL_THEME_PRESET,
   FLUENT_THEME_PRESET,
   MIDNIGHT_THEME_PRESET,
   LUNARQ_LIGHT_THEME_PRESET,
@@ -41,6 +45,10 @@ function ThemePresetsExample() {
     MIDNIGHT_THEME_PRESET,
     FLUENT_THEME_PRESET,
     FLUENT_DARK_THEME_PRESET,
+    FLUENT_METAL_THEME_PRESET,
+    FLUENT_LUNARQ_THEME_PRESET,
+    FLUENT_LUNARQ_LIGHT_THEME_PRESET,
+    FLUENT_LUNARQ_BLUE_THEME_PRESET,
   ];
 
   return (
@@ -117,7 +125,7 @@ export const THEME_HELP_GROUPS: HelpGroup[] = [
         id: "themePresets",
         title: "Theme presets",
         description:
-          "LunarQ, LunarQ Light, Midnight, Fluent, and Fluent Dark. Fluent presets set data-look-and-feel for layout/type chrome.",
+          "LunarQ palettes plus Fluent variants including Fluent LunarQ Blue (slate surfaces with a cool blue accent).",
         code: snippetCode(
           'import { FLUENT_THEME_PRESET, LUNARQ_THEME_PRESET, applyThemePreset } from "@lunarq/frontend-shared";',
           "",

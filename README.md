@@ -284,7 +284,7 @@ const ThemeButtonWithCustom = createThemeButton(React, {
 });
 ```
 
-Switch look-and-feel from the same ThemeButton menu: presets are grouped under **LunarQ** and **Microsoft Fluent** (`fluent`, `fluent-dark`). Selecting a preset applies CSS variables, sets `data-theme` / `data-look-and-feel`, and persists the id.
+Switch look-and-feel from the same ThemeButton menu: presets are grouped under **LunarQ** and **Microsoft Fluent** (`fluent`, `fluent-dark`, `fluent-metal`, `fluent-lunarq`, `fluent-lunarq-light`, `fluent-lunarq-blue`). Selecting a preset applies CSS variables, sets `data-theme` / `data-look-and-feel`, and persists the id.
 ```ts
 import React from "react";
 import { createRegistryResourcePage } from "@lunarq/frontend-shared";

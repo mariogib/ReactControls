@@ -31,6 +31,17 @@
 .danger-btn {
   background: var(--danger-color);
   border-color: var(--danger-color);
+  color: #ffffff;
+}
+
+.danger-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-color) 88%, #000000);
+  border-color: color-mix(in srgb, var(--danger-color) 88%, #000000);
+}
+
+.danger-btn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-color) 78%, #000000);
+  border-color: color-mix(in srgb, var(--danger-color) 78%, #000000);
 }
 
 .warning-btn {
