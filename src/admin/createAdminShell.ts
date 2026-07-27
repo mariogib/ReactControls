@@ -50,7 +50,13 @@ export type AdminNavItem = AdminNavLeaf | AdminNavGroup;
 export interface AdminShellProps {
   navItems: AdminNavItem[];
   logo: ReactNodeLike;
+  /** Primary top-bar content (typically page title). */
   topBarContent?: ReactNodeLike;
+  /**
+   * Right-side controls rendered in the same row as shell Refresh
+   * (e.g. status badges, ThemeButton).
+   */
+  topBarActions?: ReactNodeLike;
   contentOverlay?: ReactNodeLike;
   userName: string;
   userEmail: string;
@@ -65,7 +71,7 @@ export interface AdminShellProps {
   /** Accessible label for the menu toggle. */
   sidebarToggleLabel?: string;
   /**
-   * Show a top-bar Refresh control next to `topBarContent` (e.g. beside ThemeButton).
+   * Show a top-bar Refresh control in the shared controls row.
    * Defaults to `true`.
    */
   showContentRefresh?: boolean;
@@ -93,6 +99,7 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
     navItems,
     logo,
     topBarContent = null,
+    topBarActions = null,
     contentOverlay = null,
     userName,
     userEmail,
@@ -290,27 +297,36 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
             react.createElement(
               "div",
               { className: "user-menu" },
-              topBarContent,
-              showContentRefresh
+              topBarContent
+                ? react.createElement("div", { className: "top-bar-primary" }, topBarContent)
+                : null,
+              topBarActions || showContentRefresh
                 ? react.createElement(
-                    "button",
-                    {
-                      type: "button",
-                      className: "content-refresh-btn",
-                      "aria-label": contentRefreshAriaLabel,
-                      title: contentRefreshAriaLabel,
-                      onClick: handleContentRefresh,
-                    },
-                    react.createElement(
-                      "span",
-                      { className: "content-refresh-icon", "aria-hidden": true },
-                      "\u21BB",
-                    ),
-                    react.createElement(
-                      "span",
-                      { className: "content-refresh-label" },
-                      contentRefreshLabel,
-                    ),
+                    "div",
+                    { className: "top-bar-controls" },
+                    topBarActions,
+                    showContentRefresh
+                      ? react.createElement(
+                          "button",
+                          {
+                            type: "button",
+                            className: "content-refresh-btn",
+                            "aria-label": contentRefreshAriaLabel,
+                            title: contentRefreshAriaLabel,
+                            onClick: handleContentRefresh,
+                          },
+                          react.createElement(
+                            "span",
+                            { className: "content-refresh-icon", "aria-hidden": true },
+                            "\u21BB",
+                          ),
+                          react.createElement(
+                            "span",
+                            { className: "content-refresh-label" },
+                            contentRefreshLabel,
+                          ),
+                        )
+                      : null,
                   )
                 : null,
             ),

@@ -101,3 +101,66 @@ test("buildExcelWorkbook rejects empty columns", () => {
     /at least one column/,
   );
 });
+
+test("buildExcelWorkbook creates multiple worksheets when sheets are provided", async () => {
+  const workbook = buildExcelWorkbook({
+    filename: "project",
+    title: "Ignored",
+    timestamp: "2026-07-20",
+    columns: [{ header: "X", key: "x" }],
+    data: [],
+    sheets: [
+      {
+        sheetName: "Overview",
+        columns: [
+          { header: "Metric", key: "metric" },
+          { header: "Value", key: "value" },
+        ],
+        data: [{ metric: "Prompts", value: 12 }],
+      },
+      {
+        sheetName: "Activity",
+        columns: [
+          { header: "Day", key: "day" },
+          { header: "Prompts", key: "promptCount" },
+        ],
+        data: [{ day: "Jul 1", promptCount: 4 }],
+      },
+    ],
+  });
+
+  const entries = await readZipTextEntries(workbook);
+  assert.ok(entries.has("xl/worksheets/sheet1.xml"));
+  assert.ok(entries.has("xl/worksheets/sheet2.xml"));
+  assert.ok(entries.has("xl/tables/table1.xml"));
+  assert.ok(entries.has("xl/tables/table2.xml"));
+
+  const workbookXml = entries.get("xl/workbook.xml")!;
+  assert.match(workbookXml, /name="Overview"/);
+  assert.match(workbookXml, /name="Activity"/);
+
+  assert.match(entries.get("xl/worksheets/sheet1.xml")!, /Prompts/);
+  assert.match(entries.get("xl/worksheets/sheet2.xml")!, /Jul 1/);
+});
+
+test("buildExcelWorkbook keeps a blank data row when sheet data is empty", async () => {
+  const workbook = buildExcelWorkbook({
+    filename: "empty-range",
+    title: "Activity",
+    timestamp: "2026-07-27",
+    columns: [
+      { header: "Day", key: "day" },
+      { header: "Prompts", key: "promptCount" },
+    ],
+    data: [],
+  });
+
+  const entries = await readZipTextEntries(workbook);
+  const table = entries.get("xl/tables/table1.xml")!;
+  assert.match(table, /ref="A1:B2"/);
+  assert.match(table, /<autoFilter ref="A1:B2"\/>/);
+
+  const sheet = entries.get("xl/worksheets/sheet1.xml")!;
+  assert.match(sheet, /<row r="1">/);
+  assert.match(sheet, /<row r="2">/);
+});

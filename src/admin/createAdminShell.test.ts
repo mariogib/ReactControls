@@ -113,13 +113,18 @@ test("createAdminShell shows content refresh beside top-bar actions", () => {
     logo: "Logo",
     userName: "Admin",
     userEmail: "admin@lunarq.com",
-    topBarContent: "Theme",
+    topBarContent: "Title",
+    topBarActions: "Theme",
     onContentRefresh: () => {
       refreshed += 1;
     },
     children: "Content",
   }) as FakeNode;
 
+  const controls = findByClass(element, "top-bar-controls");
+  assert.ok(controls);
+  assert.equal(findByClass(element, "top-bar-primary")?.children[0], "Title");
+  assert.ok(controls?.children.includes("Theme"));
   const refresh = findByClass(element, "content-refresh-btn");
   assert.ok(refresh);
   assert.equal(refresh?.props["aria-label"], "Refresh page content");
@@ -134,7 +139,8 @@ test("createAdminShell shows content refresh beside top-bar actions", () => {
     logo: "Logo",
     userName: "Admin",
     userEmail: "admin@lunarq.com",
-    topBarContent: "Theme",
+    topBarContent: "Title",
+    topBarActions: "Theme",
     onContentRefresh: () => {
       refreshed += 1;
     },

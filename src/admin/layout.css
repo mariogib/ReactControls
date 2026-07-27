@@ -393,6 +393,20 @@
   min-width: 0;
 }
 
+.top-bar-primary {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.top-bar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
 .content-refresh-btn {
   appearance: none;
   display: inline-flex;
