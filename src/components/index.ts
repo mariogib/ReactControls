@@ -6,6 +6,7 @@ export * from "./createChartCard.js";
 export * from "./createStatusBadge.js";
 export * from "./createStatsGrid.js";
 export * from "./createModalDialog.js";
+export * from "./createPopupForm.js";
 export * from "./createReportLayout.js";
 export * from "./createEmptyState.js";
 export * from "./createDataTable.js";

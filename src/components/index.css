@@ -4,6 +4,7 @@
 @import "./breadcrumb.css";
 @import "./textLink.css";
 @import "./chartCard.css";
+@import "./popupForm.css";
 
 .form-group {
 	margin-bottom: 1.25rem;
