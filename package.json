@@ -1,6 +1,6 @@
 {
   "name": "@lunarq/frontend-shared",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Shared frontend platform assets for LunarQ applications",
   "private": true,
   "type": "module",
@@ -64,12 +64,20 @@
     "showcase:build": "npm --prefix showcase run build"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "recharts": "^2.15.0"
+  },
+  "peerDependenciesMeta": {
+    "recharts": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.3",
     "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.15.4",
     "tsx": "^4.20.6",
     "typescript": "^5.6.3"
   },
