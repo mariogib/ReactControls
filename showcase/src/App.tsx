@@ -516,7 +516,8 @@ function ShowcaseContent() {
     { accentColor: statsConfig.cardThreeAccent || undefined, icon: statsConfig.cardThreeIcon, label: statsConfig.cardThreeLabel, value: statsConfig.cardThreeValue },
   ];
 
-  const selectOptions = parseOptions(selectFieldConfig.optionsText);
+  const { optionsText: selectOptionsText, ...selectFieldProps } = selectFieldConfig;
+  const selectOptions = parseOptions(selectOptionsText);
   const tableHeaders = dataTableConfig.headersText.split("|").map((header) => header.trim()).filter(Boolean);
   const tableRows = parseTableRows(dataTableConfig.rowsText);
   const [defaultBrowseRows, setDefaultBrowseRows] = React.useState([
@@ -1511,7 +1512,12 @@ export function Example() {
             <TextField {...textFieldConfig} onChange={(event: InputChangeEvent) => setTextFieldConfig((current) => ({ ...current, value: event.target.value }))} />
           </DemoCard>
           <DemoCard title="SelectField" description="Single or multi-option select input with shared label treatment." onConfigure={() => setActiveConfig("selectField")}>
-            <ShowcaseSelectField {...selectFieldConfig} onChange={(event: SelectChangeEvent) => setSelectFieldConfig((current) => ({ ...current, value: event.target.value }))}>
+            <ShowcaseSelectField
+              {...selectFieldProps}
+              onChange={(event: SelectChangeEvent) =>
+                setSelectFieldConfig((current) => ({ ...current, value: event.target.value }))
+              }
+            >
               {renderOptionNodes(selectOptions)}
             </ShowcaseSelectField>
           </DemoCard>
@@ -2054,7 +2060,12 @@ export default function App() {
   }));
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AdminShell
         navItems={navItems}
         logo={

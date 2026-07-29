@@ -115,12 +115,33 @@ export function createFormFields(react: ReactElementApi) {
     );
   }
 
-  function SelectField({ label, htmlFor, variant = "form-group", className = "", inputClassName = "", children, ...selectProps }: SelectFieldProps) {
+  function SelectField({
+    label,
+    htmlFor,
+    variant = "form-group",
+    className = "",
+    inputClassName = "",
+    children,
+    name,
+    value,
+    required,
+    disabled,
+    title,
+    onChange,
+    multiple,
+  }: SelectFieldProps) {
     const accessibleLabel = typeof label === "string" ? label : undefined;
-    const resolvedSelectProps = {
-      "aria-label": selectProps.title ?? accessibleLabel,
-      title: selectProps.title ?? accessibleLabel,
-      ...selectProps,
+    const selectElementProps = {
+      id: htmlFor,
+      className: inputClassName,
+      name,
+      value,
+      required,
+      disabled,
+      multiple,
+      onChange,
+      "aria-label": title ?? accessibleLabel,
+      title: title ?? accessibleLabel,
     };
 
     if (variant === "field") {
@@ -128,7 +149,7 @@ export function createFormFields(react: ReactElementApi) {
         "label",
         { className: ["field", className].filter(Boolean).join(" "), htmlFor },
         react.createElement("span", null, renderLabel(label, variant)),
-        react.createElement("select", { id: htmlFor, className: inputClassName, ...resolvedSelectProps }, children),
+        react.createElement("select", selectElementProps, children),
       );
     }
 
@@ -136,7 +157,7 @@ export function createFormFields(react: ReactElementApi) {
       "div",
       { className: ["form-group", className].filter(Boolean).join(" ") },
       react.createElement("label", { htmlFor }, renderLabel(label, variant)),
-      react.createElement("select", { id: htmlFor, className: inputClassName, ...resolvedSelectProps }, children),
+      react.createElement("select", selectElementProps, children),
     );
   }
 
