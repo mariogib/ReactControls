@@ -1,6 +1,7 @@
 import React from "react";
 import {
   createButton,
+  createFluentNavIcons,
   createSessionInfo,
   createStatusMessage,
   createUseAdminUser,
@@ -13,6 +14,7 @@ const Button = createButton(React);
 const SessionInfo = createSessionInfo(React);
 const StatusMessage = createStatusMessage(React);
 const useAdminUser = createUseAdminUser(React);
+const fluentIcons = createFluentNavIcons(React);
 
 const mockUserManager = {
   async getUser() {
@@ -93,33 +95,48 @@ function SessionAccessExample() {
   );
 }
 
+function FluentNavIconsExample() {
+  const entries = Object.entries(fluentIcons) as Array<[string, React.ReactNode]>;
+  return (
+    <div className="showcase-stack" style={{ padding: 0 }}>
+      <p className="showcase-copy">
+        Fluent outline glyphs for admin nav. Swap these in when look-and-feel is Fluent.
+      </p>
+      <div className="showcase-action-row">
+        {entries.map(([name, icon]) => (
+          <div key={name} className="showcase-fluent-nav-sample" title={name}>
+            <span className="showcase-fluent-nav-icon">{icon}</span>
+            <span className="showcase-copy">{name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AdminShellExample() {
   return (
     <div className="showcase-stack" style={{ padding: 0 }}>
       <StatusMessage
         tone="info"
         title="AdminShell"
-        detail="This showcase is already wrapped in createAdminShell. Use the top-bar arrow control to hide or show the sidebar. Pass navItems, logo, topBarContent, and sign-out."
+        detail="This showcase is already wrapped in createAdminShell. Use the top-bar arrow to hide or show the sidebar. Content refresh remounts outlet children after onContentRefresh."
       />
       <pre className="showcase-code-block">{`const AdminShell = createAdminShell(React, NavLink);
+const fluentIcons = createFluentNavIcons(React);
 
 <AdminShell
   navItems={[
-    { to: "/app", end: true, label: "Overview", icon: "📊" },
-    {
-      to: "/app/help",
-      label: "Help",
-      icon: "❓",
-      children: [
-        { to: "/app/help/components", label: "Components", icon: "🧩" },
-        { to: "/app/help/hooks", label: "Hooks", icon: "🪝" },
-      ],
-    },
+    { to: "/app", end: true, label: "Overview", icon: fluentIcons.overview },
+    { to: "/app/help", label: "Help", icon: fluentIcons.help },
   ]}
   logo={<div>Logo</div>}
   userName="Admin"
   userEmail="admin@lunarq.com"
   defaultSidebarOpen
+  showContentRefresh
+  onContentRefresh={() => void queryClient.invalidateQueries()}
+  topBarActions={<ThemeButton />}
   onSignOut={() => {}}
 >
   <Outlet />
@@ -138,17 +155,20 @@ export const ADMIN_HELP_GROUPS: HelpGroup[] = [
         id: "adminShell",
         title: "AdminShell",
         description:
-          "App chrome with hideable sidebar nav, optional submenus, top-bar menu toggle, and sign-out.",
+          "App chrome with hideable sidebar, Fluent or glyph nav icons, content refresh, and top-bar actions.",
         code: snippetCode(
-          'import { createAdminShell } from "@lunarq/frontend-shared";\nimport { NavLink } from "react-router-dom";',
-          "const AdminShell = createAdminShell(React, NavLink);",
+          'import { createAdminShell, createFluentNavIcons } from "@lunarq/frontend-shared";\nimport { NavLink } from "react-router-dom";',
+          `const AdminShell = createAdminShell(React, NavLink);
+const fluentIcons = createFluentNavIcons(React);`,
           `export function AppShell({ children }) {
   return (
     <AdminShell
-      navItems={[{ to: "/app", end: true, label: "Overview", icon: "📊" }]}
+      navItems={[{ to: "/app", end: true, label: "Overview", icon: fluentIcons.overview }]}
       logo={<div>Logo</div>}
       userName="Admin"
       userEmail="admin@lunarq.com"
+      showContentRefresh
+      onContentRefresh={() => {}}
       defaultSidebarOpen
       onSignOut={() => {}}
     >
@@ -158,6 +178,26 @@ export const ADMIN_HELP_GROUPS: HelpGroup[] = [
 }`,
         ),
         Example: AdminShellExample,
+      },
+      {
+        id: "fluentNavIcons",
+        title: "Fluent nav icons",
+        description:
+          "createFluentNavIcons returns outline SVG glyphs for overview, projects, settings, help, and more.",
+        code: snippetCode(
+          'import { createFluentNavIcons } from "@lunarq/frontend-shared";',
+          "const fluentIcons = createFluentNavIcons(React);",
+          `export function Example() {
+  return (
+    <nav>
+      <span>{fluentIcons.overview}</span>
+      <span>{fluentIcons.projects}</span>
+      <span>{fluentIcons.settings}</span>
+    </nav>
+  );
+}`,
+        ),
+        Example: FluentNavIconsExample,
       },
       {
         id: "sessionInfo",

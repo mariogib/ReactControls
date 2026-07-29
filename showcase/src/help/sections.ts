@@ -1,5 +1,6 @@
 import { HELP_GROUPS as COMPONENT_LANDING_GROUPS } from "../helpCatalog";
 import { ADMIN_HELP_GROUPS } from "./adminCatalog";
+import { ANALYSIS_HELP_GROUPS } from "./analysisCatalog";
 import { AUTH_HELP_GROUPS } from "./authCatalog";
 import { HOOKS_HELP_GROUPS } from "./hooksCatalog";
 import { LAYOUT_HELP_GROUPS } from "./layoutCatalog";
@@ -15,8 +16,8 @@ export const HELP_SECTIONS: HelpSection[] = [
     id: "components",
     title: "Components",
     description:
-      "Shared UI controls and page chrome, including the Overview landing-page groups plus layout and report shells.",
-    groups: [...COMPONENT_LANDING_GROUPS, ...LAYOUT_HELP_GROUPS],
+      "Shared UI controls and page chrome, including analysis metrics, charts, layout shells, and form fields.",
+    groups: [...COMPONENT_LANDING_GROUPS, ...LAYOUT_HELP_GROUPS, ...ANALYSIS_HELP_GROUPS],
   },
   {
     id: "hooks",
@@ -27,13 +28,13 @@ export const HELP_SECTIONS: HelpSection[] = [
   {
     id: "theme",
     title: "Theme",
-    description: "Theme button, built-in presets, and helpers for resolving/applying palettes.",
+    description: "Theme button, built-in presets, look-and-feel grouping, and palette helpers.",
     groups: THEME_HELP_GROUPS,
   },
   {
     id: "admin",
     title: "Admin",
-    description: "Admin shell, session dropdown, user hook, and role-access helpers.",
+    description: "Admin shell, Fluent nav icons, session dropdown, user hook, and role-access helpers.",
     groups: ADMIN_HELP_GROUPS,
   },
   {

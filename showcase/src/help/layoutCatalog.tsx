@@ -3,14 +3,18 @@ import {
   createBreadcrumb,
   createButton,
   createCard,
+  createDateRangeFilters,
   createFormFields,
   createPageHero,
   createPanelSection,
   createReportLayout,
+  createSplitDateTimeField,
   createStatusMessage,
   createTextLink,
   exportToExcel,
   exportToPdf,
+  parseRangePreset,
+  type RangePreset,
 } from "@lunarq/frontend-shared";
 import { factoryCode, snippetCode, type HelpGroup } from "./types";
 
@@ -22,6 +26,8 @@ const PageHero = createPageHero(React);
 const PanelSection = createPanelSection(React);
 const StatusMessage = createStatusMessage(React);
 const { DateTimeControl } = createFormFields(React);
+const DateRangeFilters = createDateRangeFilters(React);
+const SplitDateTimeField = createSplitDateTimeField(React);
 const ReportLayout = createReportLayout(React, {
   exportToExcel: async (args) => {
     await exportToExcel({
@@ -148,6 +154,54 @@ function DateTimeControlExample() {
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => setWithSeconds(event.target.value)}
       />
     </div>
+  );
+}
+
+function DateRangeFiltersExample() {
+  const [preset, setPreset] = React.useState<RangePreset>(parseRangePreset("30d"));
+  const [fromDate, setFromDate] = React.useState("2026-06-29");
+  const [toDate, setToDate] = React.useState("2026-07-29");
+  const [year, setYear] = React.useState(2026);
+  const [month, setMonth] = React.useState(7);
+
+  return (
+    <DateRangeFilters
+      preset={preset}
+      fromDate={fromDate}
+      toDate={toDate}
+      onPresetChange={setPreset}
+      onFromDateChange={setFromDate}
+      onToDateChange={setToDate}
+      year={year}
+      month={month}
+      onYearMonthChange={(nextYear, nextMonth) => {
+        setYear(nextYear);
+        setMonth(nextMonth);
+      }}
+      monthsWithData={[
+        { year: 2026, month: 5, entryCount: 12 },
+        { year: 2026, month: 6, entryCount: 28 },
+        { year: 2026, month: 7, entryCount: 9 },
+      ]}
+      onMonthSelect={(nextYear, nextMonth) => {
+        setYear(nextYear);
+        setMonth(nextMonth);
+        setPreset("month");
+      }}
+    />
+  );
+}
+
+function SplitDateTimeFieldExample() {
+  const [value, setValue] = React.useState("2026-07-29T09:30:00");
+  return (
+    <SplitDateTimeField
+      id="help-split-dt"
+      label="Session start"
+      value={value}
+      onChange={setValue}
+      required
+    />
   );
 }
 
@@ -308,7 +362,7 @@ export const LAYOUT_HELP_GROUPS: HelpGroup[] = [
   {
     id: "advancedForms",
     eyebrow: "Forms",
-    title: "DateTimeControl",
+    title: "Date & range controls",
     items: [
       {
         id: "dateTimeControl",
@@ -331,6 +385,53 @@ export const LAYOUT_HELP_GROUPS: HelpGroup[] = [
 }`,
         ),
         Example: DateTimeControlExample,
+      },
+      {
+        id: "dateRangeFilters",
+        title: "DateRangeFilters",
+        description:
+          "Preset / custom / choose-month range toolbar used on analysis and timesheet pages.",
+        code: snippetCode(
+          'import { createDateRangeFilters, parseRangePreset } from "@lunarq/frontend-shared";',
+          "const DateRangeFilters = createDateRangeFilters(React);",
+          `export function Example() {
+  const [preset, setPreset] = React.useState(parseRangePreset("30d"));
+  const [fromDate, setFromDate] = React.useState("2026-06-29");
+  const [toDate, setToDate] = React.useState("2026-07-29");
+  return (
+    <DateRangeFilters
+      preset={preset}
+      fromDate={fromDate}
+      toDate={toDate}
+      onPresetChange={setPreset}
+      onFromDateChange={setFromDate}
+      onToDateChange={setToDate}
+    />
+  );
+}`,
+        ),
+        Example: DateRangeFiltersExample,
+      },
+      {
+        id: "splitDateTimeField",
+        title: "SplitDateTimeField",
+        description:
+          "Separate native date + time inputs bound as a local YYYY-MM-DDTHH:mm:ss value.",
+        code: snippetCode(
+          'import { createSplitDateTimeField } from "@lunarq/frontend-shared";',
+          "const SplitDateTimeField = createSplitDateTimeField(React);",
+          `export function Example() {
+  const [value, setValue] = React.useState("2026-07-29T09:30:00");
+  return (
+    <SplitDateTimeField
+      label="Session start"
+      value={value}
+      onChange={setValue}
+    />
+  );
+}`,
+        ),
+        Example: SplitDateTimeFieldExample,
       },
     ],
   },

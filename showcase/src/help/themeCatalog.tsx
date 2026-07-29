@@ -16,7 +16,10 @@ import {
   applyThemePreset,
   createThemeButton,
   getThemePresetById,
+  groupThemePresetsByLookAndFeel,
+  resolveThemeLookAndFeel,
   resolveThemePreset,
+  THEME_LOOK_AND_FEEL_LABELS,
 } from "@lunarq/frontend-shared";
 import { snippetCode, type HelpGroup } from "./types";
 
@@ -92,13 +95,44 @@ function ThemePresetsExample() {
 }
 
 function ResolveThemePresetExample() {
-  const resolved = resolveThemePreset("fluent", BUILTIN_THEME_PRESETS, "lunarq");
+  const resolved = resolveThemePreset("fluent-aurora", BUILTIN_THEME_PRESETS, "lunarq");
   return (
     <div className="showcase-stack" style={{ padding: 0 }}>
       <p className="showcase-copy">
-        resolveThemePreset("fluent") → <strong>{resolved.label}</strong>
+        resolveThemePreset("fluent-aurora") → <strong>{resolved.label}</strong> (
+        {resolveThemeLookAndFeel(resolved)})
       </p>
       <pre className="showcase-code-block">{JSON.stringify(resolved.theme, null, 2)}</pre>
+    </div>
+  );
+}
+
+function LookAndFeelGroupingExample() {
+  const groups = groupThemePresetsByLookAndFeel(BUILTIN_THEME_PRESETS);
+  return (
+    <div className="showcase-stack" style={{ padding: 0 }}>
+      {groups.map((group) => (
+        <div key={group.lookAndFeel}>
+          <p className="showcase-copy" style={{ marginBottom: "0.35rem" }}>
+            <strong>{group.label}</strong>{" "}
+            <span>
+              ({THEME_LOOK_AND_FEEL_LABELS[group.lookAndFeel]} · {group.themes.length} presets)
+            </span>
+          </p>
+          <div className="showcase-action-row">
+            {group.themes.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className="secondary-btn"
+                onClick={() => applyThemePreset(preset)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -144,6 +178,19 @@ export const THEME_HELP_GROUPS: HelpGroup[] = [
 }`,
         ),
         Example: ThemePresetsExample,
+      },
+      {
+        id: "lookAndFeelGrouping",
+        title: "Look-and-feel grouping",
+        description:
+          "groupThemePresetsByLookAndFeel and resolveThemeLookAndFeel organize LunarQ vs Microsoft Fluent sections.",
+        code: snippetCode(
+          'import {\n  BUILTIN_THEME_PRESETS,\n  groupThemePresetsByLookAndFeel,\n  resolveThemeLookAndFeel,\n} from "@lunarq/frontend-shared";',
+          "",
+          `const groups = groupThemePresetsByLookAndFeel(BUILTIN_THEME_PRESETS);
+const feel = resolveThemeLookAndFeel(groups[0].themes[0]);`,
+        ),
+        Example: LookAndFeelGroupingExample,
       },
       {
         id: "resolveThemePreset",

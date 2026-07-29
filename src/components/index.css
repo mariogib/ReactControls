@@ -158,3 +158,72 @@
 	font-size: 0.875rem;
 	margin-bottom: 1.5rem;
 }
+
+.loading-box,
+.empty {
+	padding: 1.25rem;
+	border-radius: var(--radius-md, 0.5rem);
+	border: 1px dashed var(--border-color);
+	color: var(--text-muted);
+	background: color-mix(in srgb, var(--card-bg) 80%, transparent);
+}
+
+.metric-card {
+	padding: 1rem;
+	min-width: 8rem;
+}
+
+.metric-card .label {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+}
+
+.metric-card .value {
+	font-size: 1.35rem;
+	font-weight: 650;
+	margin-top: 0.25rem;
+}
+
+.metric-card .hint {
+	margin-top: 0.35rem;
+	color: var(--text-muted);
+	font-size: 0.8rem;
+}
+
+.panel {
+	padding: 1rem 1.1rem;
+}
+
+.table-panel {
+	padding: 0;
+	overflow: hidden;
+}
+
+.table-panel > .table-wrap {
+	overflow: auto;
+}
+
+.field-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	align-items: end;
+}
+
+.field-row .field {
+	min-width: 9rem;
+	flex: 1 1 9rem;
+}
+
+.datetime-field-label {
+	display: block;
+	margin-bottom: 0.35rem;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+.datetime-field-inputs {
+	display: grid;
+	grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+	gap: 0.45rem;
+}
