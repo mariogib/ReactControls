@@ -223,3 +223,54 @@
     width: 100%;
   }
 }
+
+/* Sortable DataTable / browse-table headers */
+.table-shell table th.sortable,
+.browse-table th.sortable {
+  padding: 0;
+  vertical-align: middle;
+}
+
+.data-table-sort-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+}
+
+.data-table-sort-btn:hover {
+  color: var(--text-color);
+}
+
+.data-table-sort-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+
+.data-table-sort-indicator {
+  font-size: 0.7em;
+  opacity: 0.45;
+  flex: 0 0 auto;
+}
+
+th.is-sorted .data-table-sort-indicator,
+th[aria-sort="ascending"] .data-table-sort-indicator,
+th[aria-sort="descending"] .data-table-sort-indicator {
+  opacity: 0.95;
+  color: var(--primary-color);
+}
+
+th.is-sorted .data-table-sort-label {
+  font-weight: 600;
+}

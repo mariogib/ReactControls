@@ -23,6 +23,10 @@ import {
   STATUS_FILTER_NONE,
   type AnalysisDetailBrowseDeps,
 } from "./createAnalysisDetailBrowse.js";
+import type {
+  DataTableSortControls,
+  DataTableSortState,
+} from "./createDataTable.js";
 
 /** Max rows fetched for Excel export of a remote filtered list. */
 export const REMOTE_BROWSE_EXPORT_CAP = 5_000;
@@ -79,6 +83,8 @@ export type RemotePageFetchArgs = {
   pageSize: number;
   search: string;
   status: string;
+  /** Active column sort; omit/null means server/default order. */
+  sort?: DataTableSortState;
   signal?: AbortSignal;
 };
 
@@ -96,7 +102,7 @@ export type RemoteAnalysisDetailBrowseProps<T> = {
   exportTitle: string;
   exportColumns: ExcelColumn[];
   toExportRow: (row: T) => Record<string, unknown>;
-  renderTable: (rows: T[]) => ReactNode;
+  renderTable: (rows: T[], sortControls: DataTableSortControls) => ReactNode;
   renderGrid: (rows: T[]) => ReactNode;
   emptyMessage?: string;
   emptySourceMessage?: string;
@@ -164,6 +170,7 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
     const [searchValue, setSearchValue] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
+    const [sort, setSort] = useState<DataTableSortState>(null);
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(initialPageSize);
     const [loadedPages, setLoadedPages] = useState(() => createBrowseLoadedPages(0));
@@ -223,6 +230,7 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
             pageSize,
             search: debouncedSearch,
             status: statusFilter,
+            sort,
           });
           if (requestId !== requestIdRef.current) {
             return;
@@ -264,10 +272,11 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
           }
         }
       },
-      [debouncedSearch, pageSize, pagingMode, statusFilter],
+      [debouncedSearch, pageSize, pagingMode, sort, statusFilter],
     );
 
-    const filterToken = `${filterKey}|${debouncedSearch}|${statusFilter}|${pageSize}|${pagingMode}`;
+    const sortToken = sort ? `${sort.columnId}:${sort.direction}` : "";
+    const filterToken = `${filterKey}|${debouncedSearch}|${statusFilter}|${pageSize}|${pagingMode}|${sortToken}`;
     const filterTokenRef = useRef("");
 
     useEffect(() => {
@@ -346,6 +355,7 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
           pageSize: exportPageSize,
           search: debouncedSearch,
           status: statusFilter,
+          sort,
         });
         total = result.totalCount;
         if (result.items.length === 0) {
@@ -362,7 +372,7 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
         rows: rows.slice(0, exportRowCap),
         total,
       };
-    }, [debouncedSearch, exportRowCap, statusFilter, totalCount]);
+    }, [debouncedSearch, exportRowCap, sort, statusFilter, totalCount]);
 
     const onExportToExcel = useCallback(async () => {
       if (exporting || totalCount === 0) {
@@ -401,6 +411,10 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
     const pageCount = getBrowsePageCount(totalCount, pageSize);
     const nextScrollPage = getNextBrowsePageToLoad(loadedPages, pageCount);
     const activeViewMode = viewMode === "calendar" ? "table" : viewMode;
+    const sortControls: DataTableSortControls = {
+      sort,
+      onSortChange: setSort,
+    };
 
     const content = (
       <>
@@ -450,6 +464,7 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
               ? "Loading page…"
               : `Showing ${formatNumber(visibleRows.length)} on screen · ${formatNumber(totalCount)} match`}
           {statusFilter ? ` · status=${statusLabel(statusFilter)}` : ""}
+          {sort ? ` · sort=${sort.columnId}:${sort.direction}` : ""}
           {filters
             .filter((filter) => filter.value && filter.value !== "__custom__")
             .map((filter) => ` · ${filter.label.toLowerCase()}=${filter.value}`)
@@ -458,14 +473,14 @@ export function createRemoteAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps)
 
         {error ? (
           <EmptyState message={error} />
-        ) : !ready && loadingPage ? (
+        ) : !ready || loadingPage ? (
           <EmptyState message="Loading…" />
         ) : totalCount === 0 ? (
           <EmptyState message={debouncedSearch || statusFilter ? emptyMessage : emptySourceMessage} />
         ) : activeViewMode === "grid" ? (
           <div className="analysis-browse-grid">{renderGrid(visibleRows)}</div>
         ) : (
-          <TablePanel>{renderTable(visibleRows)}</TablePanel>
+          <TablePanel>{renderTable(visibleRows, sortControls)}</TablePanel>
         )}
 
         {pagingMode === "scroll" && totalCount > 0 ? (

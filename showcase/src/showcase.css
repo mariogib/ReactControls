@@ -170,6 +170,14 @@ body {
   text-transform: uppercase;
 }
 
+.showcase-browse-surface .browse-table th.sortable {
+  padding: 0;
+}
+
+.showcase-browse-surface .browse-table-shell {
+  width: 100%;
+}
+
 .showcase-browse-grid-preview {
   display: grid;
   gap: 0.625rem;

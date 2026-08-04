@@ -20,7 +20,9 @@ import {
   createStatusMessage,
   createThemeButton,
   createUseAdminUser,
+  sortBrowseRows,
   type AdminNavItem,
+  type DataTableSortState,
 } from "@lunarq/frontend-shared";
 import "@lunarq/frontend-shared/admin/index.css";
 import "./showcase.css";
@@ -496,13 +498,16 @@ function ShowcaseContent() {
   });
   const [defaultBrowseView, setDefaultBrowseView] = React.useState<"table" | "grid" | "calendar">("grid");
   const [defaultSearchValue, setDefaultSearchValue] = React.useState("");
+  const [defaultBrowseSort, setDefaultBrowseSort] = React.useState<DataTableSortState>(null);
   const [opsBrowseView, setOpsBrowseView] = React.useState<"table" | "grid" | "calendar">("table");
   const [opsSearchValue, setOpsSearchValue] = React.useState("");
+  const [opsBrowseSort, setOpsBrowseSort] = React.useState<DataTableSortState>(null);
   const [opsStatusFilter, setOpsStatusFilter] = React.useState("");
   const [opsTypeFilter, setOpsTypeFilter] = React.useState("");
   const [calendarBrowseView, setCalendarBrowseView] = React.useState<"table" | "grid" | "calendar">("calendar");
   const [calendarScope, setCalendarScope] = React.useState<"day" | "month" | "year">("month");
   const [calendarSearchValue, setCalendarSearchValue] = React.useState("");
+  const [calendarBrowseSort, setCalendarBrowseSort] = React.useState<DataTableSortState>(null);
   const [calendarStatusFilter, setCalendarStatusFilter] = React.useState("");
   const [selectedCalendarDay, setSelectedCalendarDay] = React.useState<Date | null>(null);
   const [calendarCursor, setCalendarCursor] = React.useState(() => new Date(2026, 6, 1));
@@ -549,6 +554,16 @@ function ShowcaseContent() {
     return row.name.toLowerCase().includes(query) || row.status.toLowerCase().includes(query) || row.owner.toLowerCase().includes(query);
   });
 
+  const defaultSortedRows = sortBrowseRows(defaultFilteredRows, defaultBrowseSort, (row, columnId) => {
+    if (columnId === "status") {
+      return row.status;
+    }
+    if (columnId === "owner") {
+      return row.owner;
+    }
+    return row.name;
+  });
+
   const opsFilteredRows = opsBrowseRows.filter((row) => {
     const query = opsSearchValue.trim().toLowerCase();
     const matchesSearch = !query
@@ -561,6 +576,19 @@ function ShowcaseContent() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const opsSortedRows = sortBrowseRows(opsFilteredRows, opsBrowseSort, (row, columnId) => {
+    if (columnId === "status") {
+      return row.status;
+    }
+    if (columnId === "type") {
+      return row.type;
+    }
+    if (columnId === "recipient") {
+      return row.recipient;
+    }
+    return row.award;
+  });
+
   const calendarFilteredRows = calendarBrowseRows.filter((row) => {
     const query = calendarSearchValue.trim().toLowerCase();
     const matchesSearch = !query
@@ -570,6 +598,19 @@ function ShowcaseContent() {
       || row.endDate.toLowerCase().includes(query);
     const matchesStatus = !calendarStatusFilter || row.status === calendarStatusFilter;
     return matchesSearch && matchesStatus;
+  });
+
+  const calendarSortedRows = sortBrowseRows(calendarFilteredRows, calendarBrowseSort, (row, columnId) => {
+    if (columnId === "status") {
+      return row.status;
+    }
+    if (columnId === "startDate") {
+      return row.startDate;
+    }
+    if (columnId === "endDate") {
+      return row.endDate;
+    }
+    return row.campaign;
   });
 
   const showcaseCalendarYear = calendarCursor.getFullYear();
@@ -709,7 +750,7 @@ function ShowcaseContent() {
     downloadCsv(
       "competitions-export.csv",
       ["Name", "Status", "Owner"],
-      defaultFilteredRows.map((row) => [row.name, row.status, row.owner]),
+      defaultSortedRows.map((row) => [row.name, row.status, row.owner]),
     );
   }
 
@@ -717,7 +758,7 @@ function ShowcaseContent() {
     downloadCsv(
       "awards-export.csv",
       ["Award", "Status", "Type", "Recipient"],
-      opsFilteredRows.map((row) => [row.award, row.status, row.type, row.recipient]),
+      opsSortedRows.map((row) => [row.award, row.status, row.type, row.recipient]),
     );
   }
 
@@ -725,7 +766,7 @@ function ShowcaseContent() {
     downloadCsv(
       "campaigns-export.csv",
       ["Campaign", "Status", "Start Date", "End Date"],
-      calendarFilteredRows.map((row) => [row.campaign, row.status, row.startDate, row.endDate]),
+      calendarSortedRows.map((row) => [row.campaign, row.status, row.startDate, row.endDate]),
     );
   }
 
@@ -1583,33 +1624,34 @@ export function Example() {
                   </Button>,
                 ]}
               />
-              <div className="showcase-browse-meta">Sample data: {defaultFilteredRows.length} of {defaultBrowseRows.length} competitions shown</div>
+              <div className="showcase-browse-meta">Sample data: {defaultSortedRows.length} of {defaultBrowseRows.length} competitions shown{defaultBrowseSort ? ` · sort=${defaultBrowseSort.columnId}:${defaultBrowseSort.direction}` : ""}</div>
               {defaultBrowseView === "table" ? (
                 <div className="browse-table-wrap">
-                  <table className="browse-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Owner</th>
+                  <DataTable
+                    shellClassName="browse-table-shell"
+                    className="browse-table"
+                    headers={[
+                      { id: "name", header: "Name", sortable: true },
+                      { id: "status", header: "Status", sortable: true },
+                      { id: "owner", header: "Owner", sortable: true },
+                    ]}
+                    sort={defaultBrowseSort}
+                    onSortChange={setDefaultBrowseSort}
+                  >
+                    {defaultSortedRows.map((row) => (
+                      <tr key={row.name}>
+                        <td>
+                          <div className="browse-table-primary">{row.name}</div>
+                        </td>
+                        <td>{row.status}</td>
+                        <td>{row.owner}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {defaultFilteredRows.map((row) => (
-                        <tr key={row.name}>
-                          <td>
-                            <div className="browse-table-primary">{row.name}</div>
-                          </td>
-                          <td>{row.status}</td>
-                          <td>{row.owner}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    ))}
+                  </DataTable>
                 </div>
               ) : (
                 <div className="showcase-browse-grid-preview">
-                  {defaultFilteredRows.map((row) => (
+                  {defaultSortedRows.map((row) => (
                     <div key={`${row.name}-grid`} className="showcase-browse-tile">
                       <strong>{row.name}</strong>
                       <span>{row.status}</span>
@@ -1685,32 +1727,33 @@ export function Example() {
               />
               {opsBrowseView === "table" ? (
                 <div className="browse-table-wrap">
-                  <table className="browse-table">
-                    <thead>
-                      <tr>
-                        <th>Award</th>
-                        <th>Status</th>
-                        <th>Type</th>
-                        <th>Recipient</th>
+                  <DataTable
+                    shellClassName="browse-table-shell"
+                    className="browse-table"
+                    headers={[
+                      { id: "award", header: "Award", sortable: true },
+                      { id: "status", header: "Status", sortable: true },
+                      { id: "type", header: "Type", sortable: true },
+                      { id: "recipient", header: "Recipient", sortable: true },
+                    ]}
+                    sort={opsBrowseSort}
+                    onSortChange={setOpsBrowseSort}
+                  >
+                    {opsSortedRows.map((row) => (
+                      <tr key={`${row.award}-${row.recipient}`}>
+                        <td>
+                          <div className="browse-table-primary">{row.award}</div>
+                        </td>
+                        <td>{row.status}</td>
+                        <td>{row.type}</td>
+                        <td>{row.recipient}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {opsFilteredRows.map((row) => (
-                        <tr key={`${row.award}-${row.recipient}`}>
-                          <td>
-                            <div className="browse-table-primary">{row.award}</div>
-                          </td>
-                          <td>{row.status}</td>
-                          <td>{row.type}</td>
-                          <td>{row.recipient}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    ))}
+                  </DataTable>
                 </div>
               ) : (
                 <div className="showcase-browse-grid-preview">
-                  {opsFilteredRows.map((row) => (
+                  {opsSortedRows.map((row) => (
                     <div key={`${row.award}-${row.recipient}-grid`} className="showcase-browse-tile">
                       <strong>{row.award}</strong>
                       <span>{row.status} - {row.type}</span>
@@ -1720,7 +1763,8 @@ export function Example() {
                 </div>
               )}
               <div className="showcase-browse-meta">
-                Active filters: status={opsStatusFilter || "all"}, type={opsTypeFilter || "all"} | showing {opsFilteredRows.length} of {opsBrowseRows.length}
+                Active filters: status={opsStatusFilter || "all"}, type={opsTypeFilter || "all"} | showing {opsSortedRows.length} of {opsBrowseRows.length}
+                {opsBrowseSort ? ` · sort=${opsBrowseSort.columnId}:${opsBrowseSort.direction}` : ""}
               </div>
             </div>
           </Card>
@@ -1870,32 +1914,33 @@ export function Example() {
                 </div>
               ) : calendarBrowseView === "table" ? (
                 <div className="browse-table-wrap">
-                  <table className="browse-table">
-                    <thead>
-                      <tr>
-                        <th>Campaign</th>
-                        <th>Status</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
+                  <DataTable
+                    shellClassName="browse-table-shell"
+                    className="browse-table"
+                    headers={[
+                      { id: "campaign", header: "Campaign", sortable: true },
+                      { id: "status", header: "Status", sortable: true },
+                      { id: "startDate", header: "Start Date", sortable: true },
+                      { id: "endDate", header: "End Date", sortable: true },
+                    ]}
+                    sort={calendarBrowseSort}
+                    onSortChange={setCalendarBrowseSort}
+                  >
+                    {calendarSortedRows.map((row) => (
+                      <tr key={`${row.campaign}-${row.startDate}`}>
+                        <td>
+                          <div className="browse-table-primary">{row.campaign}</div>
+                        </td>
+                        <td>{row.status}</td>
+                        <td>{row.startDate}</td>
+                        <td>{row.endDate}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {calendarFilteredRows.map((row) => (
-                        <tr key={`${row.campaign}-${row.startDate}`}>
-                          <td>
-                            <div className="browse-table-primary">{row.campaign}</div>
-                          </td>
-                          <td>{row.status}</td>
-                          <td>{row.startDate}</td>
-                          <td>{row.endDate}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    ))}
+                  </DataTable>
                 </div>
               ) : (
                 <div className="showcase-browse-grid-preview">
-                  {calendarFilteredRows.map((row) => (
+                  {calendarSortedRows.map((row) => (
                     <div key={`${row.campaign}-grid`} className="showcase-browse-tile">
                       <strong>{row.campaign}</strong>
                       <span>{row.status}</span>
@@ -1904,7 +1949,7 @@ export function Example() {
                   ))}
                 </div>
               )}
-              <div className="showcase-browse-meta">Showing {calendarFilteredRows.length} of {calendarBrowseRows.length} campaigns</div>
+              <div className="showcase-browse-meta">Showing {calendarSortedRows.length} of {calendarBrowseRows.length} campaigns{calendarBrowseSort ? ` · sort=${calendarBrowseSort.columnId}:${calendarBrowseSort.direction}` : ""}</div>
             </div>
           </Card>
         </div>

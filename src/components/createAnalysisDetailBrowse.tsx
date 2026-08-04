@@ -12,6 +12,12 @@ import {
   loadBrowsePage,
   sliceBrowsePage,
 } from "./createBrowseListControls.js";
+import {
+  sortBrowseRows,
+  type BrowseSortValue,
+  type DataTableSortControls,
+  type DataTableSortState,
+} from "./createDataTable.js";
 import { exportToExcel, type ExcelColumn } from "../utils/excelExport.js";
 
 export const STATUS_FILTER_NONE = "__none__";
@@ -36,8 +42,15 @@ export type AnalysisDetailBrowseProps<T> = {
   exportTitle: string;
   exportColumns: ExcelColumn[];
   toExportRow: (row: T) => Record<string, unknown>;
-  renderTable: (rows: T[]) => ReactNode;
+  /**
+   * Render the table body/shell for the current page.
+   * Second argument exposes controlled sort state for sortable DataTable headers.
+   * Sort is applied to the full filtered list before lazy/pages/scroll slicing.
+   */
+  renderTable: (rows: T[], sortControls: DataTableSortControls) => ReactNode;
   renderGrid: (rows: T[]) => ReactNode;
+  /** Required for in-memory column sorting when headers are sortable. */
+  getSortValue?: (row: T, columnId: string) => BrowseSortValue;
   emptyMessage?: string;
   emptySourceMessage?: string;
   embedded?: boolean;
@@ -57,6 +70,10 @@ function normalizeStatusValue(value: string | null | undefined): string {
 
 function statusLabel(value: string): string {
   return value === STATUS_FILTER_NONE ? "None" : value;
+}
+
+function sortToken(sort: DataTableSortState): string {
+  return sort ? `${sort.columnId}:${sort.direction}` : "";
 }
 
 export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
@@ -82,6 +99,7 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
     toExportRow,
     renderTable,
     renderGrid,
+    getSortValue,
     emptyMessage = "No detail rows match the current search.",
     emptySourceMessage = "No detail data in this range.",
     embedded = false,
@@ -96,6 +114,7 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
     const [viewMode, setViewMode] = useState<BrowseViewMode>("table");
     const [searchValue, setSearchValue] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
+    const [sort, setSort] = useState<DataTableSortState>(null);
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(initialPageSize);
     const [loadedPages, setLoadedPages] = useState(() => createBrowseLoadedPages(0));
@@ -134,10 +153,17 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
       });
     }, [filterRow, getSearchText, getStatusValue, rows, searchValue, statusFilter]);
 
+    const sortedRows = useMemo(() => {
+      if (!getSortValue || !sort) {
+        return filteredRows;
+      }
+      return sortBrowseRows(filteredRows, sort, getSortValue);
+    }, [filteredRows, getSortValue, sort]);
+
     useEffect(() => {
       setPageIndex(0);
       setLoadedPages(createBrowseLoadedPages(0));
-    }, [searchValue, statusFilter, pagingMode, pageSize]);
+    }, [searchValue, statusFilter, pagingMode, pageSize, sort]);
 
     useEffect(() => {
       if (!enablePaging || pagingMode === "pages") {
@@ -148,15 +174,15 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
 
     const pagedRows = useMemo(() => {
       if (!enablePaging) {
-        return filteredRows;
+        return sortedRows;
       }
-      return sliceBrowsePage(filteredRows, {
+      return sliceBrowsePage(sortedRows, {
         mode: pagingMode,
         pageIndex,
         pageSize,
         loadedPages: pagingMode === "pages" ? undefined : loadedPages,
       });
-    }, [enablePaging, filteredRows, loadedPages, pageIndex, pageSize, pagingMode]);
+    }, [enablePaging, loadedPages, pageIndex, pageSize, pagingMode, sortedRows]);
 
     const activeViewMode = viewMode === "calendar" ? "table" : viewMode;
 
@@ -175,8 +201,12 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
       return next;
     }, [derivedStatusOptions, filters, getStatusValue, statusFilter]);
 
-    const pageCount = getBrowsePageCount(filteredRows.length, pageSize);
+    const pageCount = getBrowsePageCount(sortedRows.length, pageSize);
     const nextScrollPage = getNextBrowsePageToLoad(loadedPages, pageCount);
+    const sortControls: DataTableSortControls = {
+      sort,
+      onSortChange: setSort,
+    };
 
     const content = (
       <>
@@ -204,11 +234,11 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
               title: exportTitle,
               timestamp: new Date().toISOString(),
               columns: exportColumns,
-              data: filteredRows.map(toExportRow),
+              data: sortedRows.map(toExportRow),
             })
           }
           exportLabel="Export to Excel"
-          exportDisabled={filteredRows.length === 0}
+          exportDisabled={sortedRows.length === 0}
           paging={
             enablePaging
               ? {
@@ -216,7 +246,7 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
                   pageSize,
                   pageSizeOptions,
                   pageIndex,
-                  totalCount: filteredRows.length,
+                  totalCount: sortedRows.length,
                   loadedPages: pagingMode === "pages" ? undefined : loadedPages,
                   onPageIndexChange: setPageIndex,
                   onPageSizeChange: (next: number) => {
@@ -233,9 +263,10 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
 
         <p className="section-meta">
           {enablePaging
-            ? `Showing ${formatNumber(pagedRows.length)} on screen · ${formatNumber(filteredRows.length)} match of ${formatNumber(rows.length)} rows`
-            : `Showing ${formatNumber(filteredRows.length)} of ${formatNumber(rows.length)} rows`}
+            ? `Showing ${formatNumber(pagedRows.length)} on screen · ${formatNumber(sortedRows.length)} match of ${formatNumber(rows.length)} rows`
+            : `Showing ${formatNumber(sortedRows.length)} of ${formatNumber(rows.length)} rows`}
           {statusFilter ? ` · status=${statusLabel(statusFilter)}` : ""}
+          {sort ? ` · sort=${sortToken(sort)}` : ""}
           {filters
             .filter((filter) => filter.value && filter.value !== "__custom__")
             .map((filter) => ` · ${filter.label.toLowerCase()}=${filter.value}`)
@@ -244,15 +275,15 @@ export function createAnalysisDetailBrowse(deps: AnalysisDetailBrowseDeps) {
 
         {rows.length === 0 ? (
           <EmptyState message={emptySourceMessage} />
-        ) : filteredRows.length === 0 ? (
+        ) : sortedRows.length === 0 ? (
           <EmptyState message={emptyMessage} />
         ) : activeViewMode === "grid" ? (
           <div className="analysis-browse-grid">{renderGrid(pagedRows)}</div>
         ) : (
-          <TablePanel>{renderTable(pagedRows)}</TablePanel>
+          <TablePanel>{renderTable(pagedRows, sortControls)}</TablePanel>
         )}
 
-        {enablePaging && pagingMode === "scroll" && filteredRows.length > 0 ? (
+        {enablePaging && pagingMode === "scroll" && sortedRows.length > 0 ? (
           <BrowseScrollSentinel
             enabled={nextScrollPage !== null}
             loadKey={`${[...loadedPages].sort((a, b) => a - b).join(",")}:${nextScrollPage ?? "done"}`}

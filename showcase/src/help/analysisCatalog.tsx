@@ -8,6 +8,7 @@ import {
   createBrowseScrollSentinel,
   createCard,
   createChartCard,
+  createDataTable,
   createEmptyState,
   createLoadingState,
   createMetricSurfaces,
@@ -17,6 +18,7 @@ import { factoryCode, snippetCode, type HelpGroup } from "./types";
 
 const Card = createCard(React);
 const ChartCard = createChartCard(React, Card);
+const DataTable = createDataTable(React);
 const LoadingState = createLoadingState(React);
 const EmptyState = createEmptyState(React);
 const { MetricCard, Panel, TablePanel } = createMetricSurfaces(React, Card);
@@ -157,25 +159,35 @@ function AnalysisDetailBrowseExample() {
         status: row.status,
         prompts: row.prompts,
       })}
-      renderTable={(rows) => (
-        <table className="browse-table">
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Status</th>
-              <th>Prompts</th>
+      getSortValue={(row, columnId) => {
+        if (columnId === "status") {
+          return row.status;
+        }
+        if (columnId === "prompts") {
+          return row.prompts;
+        }
+        return row.project;
+      }}
+      renderTable={(rows, { sort, onSortChange }) => (
+        <DataTable
+          shellClassName="browse-table-shell"
+          className="browse-table"
+          headers={[
+            { id: "project", header: "Project", sortable: true },
+            { id: "status", header: "Status", sortable: true },
+            { id: "prompts", header: "Prompts", sortable: true },
+          ]}
+          sort={sort}
+          onSortChange={onSortChange}
+        >
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td>{row.project}</td>
+              <td>{row.status}</td>
+              <td>{row.prompts}</td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>{row.project}</td>
-                <td>{row.status}</td>
-                <td>{row.prompts}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </DataTable>
       )}
       renderGrid={(rows) => (
         <div className="showcase-action-row">
@@ -319,11 +331,21 @@ const AnalysisDetailBrowse = createAnalysisDetailBrowse({
     <AnalysisDetailBrowse
       rows={rows}
       getSearchText={(row) => row.project}
+      getSortValue={(row, columnId) => (columnId === "project" ? row.project : null)}
       exportFilename="activity"
       exportTitle="Activity"
       exportColumns={[{ header: "Project", key: "project" }]}
       toExportRow={(row) => ({ project: row.project })}
-      renderTable={(rows) => <table>{/* … */}</table>}
+      renderTable={(rows, { sort, onSortChange }) => (
+        <DataTable
+          className="browse-table"
+          headers={[{ id: "project", header: "Project", sortable: true }]}
+          sort={sort}
+          onSortChange={onSortChange}
+        >
+          {/* rows */}
+        </DataTable>
+      )}
       renderGrid={(rows) => <div>{/* tiles */}</div>}
     />
   );

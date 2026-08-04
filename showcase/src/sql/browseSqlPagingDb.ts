@@ -250,6 +250,47 @@ ${JOINED_FROM}
 ${JOINED_WHERE}
 `.trim();
 
+/** Allowlisted ORDER BY expressions for sortable browse columns. */
+export const BROWSE_SQL_SORT_COLUMNS: Record<string, string> = {
+  orderId: "o.id",
+  customerName: "c.name",
+  regionName: "r.name",
+  productName: "p.name",
+  qty: "oi.qty",
+  lineTotal: "(oi.qty * oi.unit_price)",
+  orderStatus: "o.status",
+};
+
+export type BrowseSqlSort = {
+  columnId: string;
+  direction: "asc" | "desc";
+} | null;
+
+function buildPageQuery(sort: BrowseSqlSort): string {
+  const orderExpr =
+    sort && BROWSE_SQL_SORT_COLUMNS[sort.columnId]
+      ? `${BROWSE_SQL_SORT_COLUMNS[sort.columnId]} ${sort.direction === "desc" ? "DESC" : "ASC"}, oi.id ASC`
+      : "o.ordered_at DESC, oi.id ASC";
+  return `
+SELECT
+  oi.id AS line_id,
+  o.id AS order_id,
+  o.ordered_at,
+  o.status AS order_status,
+  c.name AS customer_name,
+  r.name AS region_name,
+  p.sku,
+  p.name AS product_name,
+  oi.qty,
+  oi.unit_price,
+  (oi.qty * oi.unit_price) AS line_total
+${JOINED_FROM}
+${JOINED_WHERE}
+ORDER BY ${orderExpr}
+LIMIT ?3 OFFSET ?4
+`.trim();
+}
+
 function mapRow(values: SqlValue[]): OrderLineRow {
   return {
     lineId: Number(values[0]),
@@ -307,24 +348,26 @@ export async function countBrowseSqlRows(
 
 /**
  * Fetch one page with OFFSET/LIMIT. Call only when that pageIndex is not
- * already in the loadedPages cache.
+ * already in the loadedPages cache for the current filter/sort.
  */
 export async function fetchBrowseSqlPage(
   pageIndex: number,
   pageSize: number,
   search: string,
   status: string,
+  sort: BrowseSqlSort = null,
 ): Promise<BrowseSqlPageResult> {
   const db = await getBrowseSqlDatabase();
   const size = Math.max(1, Math.floor(pageSize) || 1);
   const index = Math.max(0, Math.floor(pageIndex) || 0);
+  const sql = buildPageQuery(sort);
   const params = [search.trim(), status.trim(), size, index * size];
-  const { values, elapsedMs } = timedQuery(db, BROWSE_SQL_PAGE_QUERY, params);
+  const { values, elapsedMs } = timedQuery(db, sql, params);
   const rows = values.map(mapRow);
   return {
     rows,
     meta: {
-      sql: BROWSE_SQL_PAGE_QUERY,
+      sql,
       params,
       elapsedMs,
       rowCount: rows.length,

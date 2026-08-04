@@ -3,11 +3,13 @@ import {
   createBrowseListControls,
   createBrowseLoadedPages,
   createBrowseScrollSentinel,
+  createDataTable,
   createStatusBadge,
   getBrowsePageCount,
   getNextBrowsePageToLoad,
   loadBrowsePage,
   type BrowsePagingMode,
+  type DataTableSortState,
 } from "@lunarq/frontend-shared";
 import {
   BROWSE_SQL_PAGE_QUERY,
@@ -20,13 +22,25 @@ import {
 
 const BrowseListControls = createBrowseListControls(React);
 const BrowseScrollSentinel = createBrowseScrollSentinel(React);
+const DataTable = createDataTable(React);
 const StatusBadge = createStatusBadge(React);
 
 type PageCache = Map<number, OrderLineRow[]>;
 
+const SQL_TABLE_HEADERS = [
+  { id: "orderId", header: "Order", sortable: true },
+  { id: "customerName", header: "Customer", sortable: true },
+  { id: "regionName", header: "Region", sortable: true },
+  { id: "productName", header: "Product", sortable: true },
+  { id: "qty", header: "Qty", sortable: true },
+  { id: "lineTotal", header: "Total", sortable: true },
+  { id: "orderStatus", header: "Status", sortable: true },
+];
+
 /**
  * Showcase: SQLite (sql.js) large joined query with load-once page cache.
- * A page runs `OFFSET`/`LIMIT` only the first time it is displayed.
+ * A page runs `OFFSET`/`LIMIT` only the first time it is displayed for the
+ * current filter + sort. Changing sort clears the cache and re-queries.
  */
 export function BrowseSqlPagingExample() {
   const [ready, setReady] = React.useState(false);
@@ -35,6 +49,7 @@ export function BrowseSqlPagingExample() {
   const [searchValue, setSearchValue] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
+  const [sort, setSort] = React.useState<DataTableSortState>(null);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(25);
   const [pagingMode, setPagingMode] = React.useState<BrowsePagingMode>("lazy");
@@ -58,14 +73,18 @@ export function BrowseSqlPagingExample() {
   const resetPaging = React.useCallback(() => {
     requestIdRef.current += 1;
     inFlightRef.current = new Set();
+    // Clear the ref immediately so ensurePageLoaded cannot reuse a stale page
+    // from the previous filter/sort before React commits setPageCache.
+    pageCacheRef.current = new Map();
     setPageIndex(0);
     setLoadedPages(createBrowseLoadedPages(0));
     setPageCache(new Map());
   }, []);
 
-  React.useEffect(() => {
-    resetPaging();
-  }, [debouncedSearch, statusFilter, pageSize, pagingMode, resetPaging]);
+  const filterSortToken = `${debouncedSearch}|${statusFilter}|${pageSize}|${pagingMode}|${
+    sort ? `${sort.columnId}:${sort.direction}` : ""
+  }`;
+  const filterSortTokenRef = React.useRef(filterSortToken);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -95,8 +114,11 @@ export function BrowseSqlPagingExample() {
   }, [debouncedSearch, statusFilter]);
 
   const ensurePageLoaded = React.useCallback(
-    async (targetPage: number) => {
+    async (targetPage: number, requestId: number) => {
       if (targetPage < 0) {
+        return;
+      }
+      if (requestId !== requestIdRef.current) {
         return;
       }
       if (pageCacheRef.current.has(targetPage)) {
@@ -107,7 +129,6 @@ export function BrowseSqlPagingExample() {
         return;
       }
 
-      const requestId = requestIdRef.current;
       inFlightRef.current.add(targetPage);
       setLoadingPage(true);
       try {
@@ -116,23 +137,21 @@ export function BrowseSqlPagingExample() {
           pageSize,
           debouncedSearch,
           statusFilter,
+          sort,
         );
         if (requestId !== requestIdRef.current) {
           return;
         }
-        setPageCache((previous) => {
-          if (previous.has(targetPage)) {
-            return previous;
-          }
-          const next = new Map(previous);
-          next.set(targetPage, result.rows);
-          return next;
-        });
+        const next = new Map(pageCacheRef.current);
+        next.set(targetPage, result.rows);
+        pageCacheRef.current = next;
+        setPageCache(next);
         setLoadedPages((previous) => loadBrowsePage(previous, targetPage));
         setLastMeta(result.meta);
+        const sortLabel = sort ? `${sort.columnId} ${sort.direction}` : "default";
         setQueryLog((previous) =>
           [
-            `SELECT page ${targetPage + 1} · OFFSET ${targetPage * pageSize} LIMIT ${pageSize} · ${result.meta.rowCount} rows · ${result.meta.elapsedMs}ms`,
+            `SELECT page ${targetPage + 1} · sort=${sortLabel} · OFFSET ${targetPage * pageSize} LIMIT ${pageSize} · ${result.meta.rowCount} rows · ${result.meta.elapsedMs}ms`,
             ...previous,
           ].slice(0, 8),
         );
@@ -147,15 +166,22 @@ export function BrowseSqlPagingExample() {
         }
       }
     },
-    [debouncedSearch, pageSize, statusFilter],
+    [debouncedSearch, pageSize, sort, statusFilter],
   );
 
   React.useEffect(() => {
     if (!ready) {
       return;
     }
-    void ensurePageLoaded(pageIndex);
-  }, [ensurePageLoaded, pageIndex, ready]);
+    const filtersChanged = filterSortTokenRef.current !== filterSortToken;
+    filterSortTokenRef.current = filterSortToken;
+    if (filtersChanged) {
+      resetPaging();
+      void ensurePageLoaded(0, requestIdRef.current);
+      return;
+    }
+    void ensurePageLoaded(pageIndex, requestIdRef.current);
+  }, [ensurePageLoaded, filterSortToken, pageIndex, ready, resetPaging]);
 
   const pageCount = getBrowsePageCount(totalCount, pageSize);
   const nextScrollPage = getNextBrowsePageToLoad(loadedPages, pageCount);
@@ -250,7 +276,9 @@ export function BrowseSqlPagingExample() {
       <p className="showcase-browse-meta">
         {loadingPage ? "Querying SQLite…" : "Ready"} · {totalCount.toLocaleString()} matching
         lines · loaded [{[...loadedPages].sort((a, b) => a - b).join(", ")}] · cached pages{" "}
-        {pageCache.size}/{pageCount}. Revisit a page — no second SELECT.
+        {pageCache.size}/{pageCount}
+        {sort ? ` · sort=${sort.columnId}:${sort.direction}` : ""}. Click a column header to sort
+        (clears cache). Revisit a page — no second SELECT for the same sort.
       </p>
 
       <div className="showcase-sql-log" aria-label="Recent SQL activity">
@@ -288,42 +316,35 @@ export function BrowseSqlPagingExample() {
         </div>
       ) : (
         <div className="browse-table-wrap">
-          <table className="browse-table">
-            <thead>
+          <DataTable
+            shellClassName="browse-table-shell"
+            className="browse-table"
+            headers={SQL_TABLE_HEADERS}
+            sort={sort}
+            onSortChange={setSort}
+          >
+            {visibleRows.length === 0 ? (
               <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Region</th>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Total</th>
-                <th>Status</th>
+                <td colSpan={7}>{loadingPage ? "Loading page…" : "No rows"}</td>
               </tr>
-            </thead>
-            <tbody>
-              {visibleRows.length === 0 ? (
-                <tr>
-                  <td colSpan={7}>{loadingPage ? "Loading page…" : "No rows"}</td>
+            ) : (
+              visibleRows.map((row) => (
+                <tr key={row.lineId}>
+                  <td className="browse-table-primary">#{row.orderId}</td>
+                  <td>{row.customerName}</td>
+                  <td>{row.regionName}</td>
+                  <td>
+                    {row.sku} · {row.productName}
+                  </td>
+                  <td>{row.qty}</td>
+                  <td>{formatMoney(row.lineTotal)}</td>
+                  <td>
+                    <StatusBadge status={row.orderStatus} />
+                  </td>
                 </tr>
-              ) : (
-                visibleRows.map((row) => (
-                  <tr key={row.lineId}>
-                    <td className="browse-table-primary">#{row.orderId}</td>
-                    <td>{row.customerName}</td>
-                    <td>{row.regionName}</td>
-                    <td>
-                      {row.sku} · {row.productName}
-                    </td>
-                    <td>{row.qty}</td>
-                    <td>{formatMoney(row.lineTotal)}</td>
-                    <td>
-                      <StatusBadge status={row.orderStatus} />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+              ))
+            )}
+          </DataTable>
         </div>
       )}
 
@@ -337,7 +358,7 @@ export function BrowseSqlPagingExample() {
             }
             setPageIndex(nextScrollPage);
             setLoadedPages((previous) => loadBrowsePage(previous, nextScrollPage));
-            void ensurePageLoaded(nextScrollPage);
+            void ensurePageLoaded(nextScrollPage, requestIdRef.current);
           }}
         />
       ) : null}

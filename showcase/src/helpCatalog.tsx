@@ -14,7 +14,9 @@ import {
   createStatusMessage,
   loadBrowsePage,
   sliceBrowsePage,
+  sortBrowseRows,
   type BrowsePagingMode,
+  type DataTableSortState,
 } from "@lunarq/frontend-shared";
 import { BrowseSqlPagingExample } from "./sql/BrowseSqlPagingExample";
 
@@ -72,12 +74,15 @@ function browseExampleCode(body: string) {
     'import {',
     "  createBrowseListControls,",
     "  createButton,",
+    "  createDataTable,",
     "  createFormFields,",
     "  createStatusBadge,",
+    "  sortBrowseRows,",
     '} from "@lunarq/frontend-shared";',
     "",
     "const BrowseListControls = createBrowseListControls(React);",
     "const Button = createButton(React);",
+    "const DataTable = createDataTable(React);",
     "const StatusBadge = createStatusBadge(React);",
     "const { CurrencyField, DateField, CheckboxField, TextField } = createFormFields(React);",
     "",
@@ -93,6 +98,31 @@ type HelpBrowseItem = {
   startDate: string;
   featured: boolean;
 };
+
+const HELP_BROWSE_TABLE_HEADERS = [
+  { id: "name", header: "Name", sortable: true },
+  { id: "status", header: "Status", sortable: true },
+  { id: "budget", header: "Budget", sortable: true },
+  { id: "startDate", header: "Start date", sortable: true },
+  { id: "featured", header: "Featured", sortable: true },
+];
+
+function getHelpBrowseSortValue(item: HelpBrowseItem, columnId: string) {
+  if (columnId === "status") {
+    return item.status;
+  }
+  if (columnId === "budget") {
+    const amount = Number(item.budget);
+    return Number.isFinite(amount) ? amount : item.budget;
+  }
+  if (columnId === "startDate") {
+    return item.startDate;
+  }
+  if (columnId === "featured") {
+    return item.featured ? 1 : 0;
+  }
+  return item.name;
+}
 
 function createBrowseItem(partial?: Partial<HelpBrowseItem>, index = 1): HelpBrowseItem {
   return {
@@ -171,35 +201,38 @@ function BrowseAddForm({
   );
 }
 
-function BrowseItemsTable({ items }: { items: HelpBrowseItem[] }) {
+function BrowseItemsTable({
+  items,
+  sort,
+  onSortChange,
+}: {
+  items: HelpBrowseItem[];
+  sort: DataTableSortState;
+  onSortChange: (next: DataTableSortState) => void;
+}) {
   return (
     <div className="browse-table-wrap">
-      <table className="browse-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Budget</th>
-            <th>Start date</th>
-            <th>Featured</th>
+      <DataTable
+        shellClassName="browse-table-shell"
+        className="browse-table"
+        headers={HELP_BROWSE_TABLE_HEADERS}
+        sort={sort}
+        onSortChange={onSortChange}
+      >
+        {items.map((item) => (
+          <tr key={item.id}>
+            <td>
+              <div className="browse-table-primary">{item.name}</div>
+            </td>
+            <td>
+              <StatusBadge status={item.status} />
+            </td>
+            <td>{formatBudget(item.budget)}</td>
+            <td>{item.startDate}</td>
+            <td>{item.featured ? "Yes" : "No"}</td>
           </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td>
-                <div className="browse-table-primary">{item.name}</div>
-              </td>
-              <td>
-                <StatusBadge status={item.status} />
-              </td>
-              <td>{formatBudget(item.budget)}</td>
-              <td>{item.startDate}</td>
-              <td>{item.featured ? "Yes" : "No"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        ))}
+      </DataTable>
     </div>
   );
 }
@@ -252,9 +285,13 @@ function BrowseItemsCalendar({ items }: { items: HelpBrowseItem[] }) {
 function BrowseItemsView({
   viewMode,
   items,
+  sort,
+  onSortChange,
 }: {
   viewMode: "table" | "grid" | "calendar";
   items: HelpBrowseItem[];
+  sort: DataTableSortState;
+  onSortChange: (next: DataTableSortState) => void;
 }) {
   if (items.length === 0) {
     return <EmptyState title="No items yet" detail="Use the form above to add the first row." framed />;
@@ -265,7 +302,7 @@ function BrowseItemsView({
   if (viewMode === "calendar") {
     return <BrowseItemsCalendar items={items} />;
   }
-  return <BrowseItemsTable items={items} />;
+  return <BrowseItemsTable items={items} sort={sort} onSortChange={onSortChange} />;
 }
 
 function formFieldCode(componentName: string, body: string) {
@@ -480,6 +517,7 @@ function appendBrowseItem(
 function BrowseDefaultExample() {
   const [viewMode, setViewMode] = React.useState<"table" | "grid" | "calendar">("table");
   const [searchValue, setSearchValue] = React.useState("");
+  const [sort, setSort] = React.useState<DataTableSortState>(null);
   const [draft, setDraft] = useBrowseDraft();
   const [items, setItems] = React.useState<HelpBrowseItem[]>([
     createBrowseItem({
@@ -513,6 +551,8 @@ function BrowseDefaultExample() {
     );
   });
 
+  const sortedItems = sortBrowseRows(filteredItems, sort, getHelpBrowseSortValue);
+
   return (
     <div className="showcase-browse-surface">
       <BrowseListControls
@@ -535,8 +575,16 @@ function BrowseDefaultExample() {
           setDraft({ name: "", budget: "2500", startDate: "2026-07-20", featured: true });
         }}
       />
-      <p className="showcase-browse-meta">View: {viewMode} · {filteredItems.length} of {items.length}</p>
-      <BrowseItemsView viewMode={viewMode} items={filteredItems} />
+      <p className="showcase-browse-meta">
+        View: {viewMode} · {sortedItems.length} of {items.length}
+        {sort ? ` · sort=${sort.columnId}:${sort.direction}` : ""}
+      </p>
+      <BrowseItemsView
+        viewMode={viewMode}
+        items={sortedItems}
+        sort={sort}
+        onSortChange={setSort}
+      />
     </div>
   );
 }
@@ -544,6 +592,7 @@ function BrowseDefaultExample() {
 function BrowsePagingExample() {
   const [viewMode, setViewMode] = React.useState<"table" | "grid" | "calendar">("table");
   const [searchValue, setSearchValue] = React.useState("");
+  const [sort, setSort] = React.useState<DataTableSortState>(null);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [pagingMode, setPagingMode] = React.useState<BrowsePagingMode>("pages");
@@ -568,10 +617,12 @@ function BrowsePagingExample() {
     return !query || item.name.toLowerCase().includes(query) || item.status.includes(query);
   });
 
+  const sortedItems = sortBrowseRows(filteredItems, sort, getHelpBrowseSortValue);
+
   React.useEffect(() => {
     setPageIndex(0);
     setLoadedPages(createBrowseLoadedPages(0));
-  }, [pagingMode, pageSize, searchValue]);
+  }, [pagingMode, pageSize, searchValue, sort]);
 
   React.useEffect(() => {
     if (pagingMode === "pages") {
@@ -580,14 +631,14 @@ function BrowsePagingExample() {
     setLoadedPages((previous) => loadBrowsePage(previous, pageIndex));
   }, [pageIndex, pagingMode]);
 
-  const pageRows = sliceBrowsePage(filteredItems, {
+  const pageRows = sliceBrowsePage(sortedItems, {
     mode: pagingMode,
     pageIndex,
     pageSize,
     loadedPages: pagingMode === "pages" ? undefined : loadedPages,
   });
 
-  const pageCount = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const pageCount = Math.max(1, Math.ceil(sortedItems.length / pageSize));
   const nextScrollPage =
     pagingMode === "scroll"
       ? Array.from({ length: pageCount }, (_, index) => index).find((index) => !loadedPages.has(index)) ??
@@ -630,7 +681,7 @@ function BrowsePagingExample() {
           pageSize,
           pageSizeOptions: [5, 10, 25],
           pageIndex,
-          totalCount: filteredItems.length,
+          totalCount: sortedItems.length,
           loadedPages: pagingMode === "pages" ? undefined : loadedPages,
           onPageIndexChange: setPageIndex,
           onPageSizeChange: (size) => {
@@ -640,10 +691,16 @@ function BrowsePagingExample() {
         }}
       />
       <p className="showcase-browse-meta">
-        Mode {pagingMode} · showing {pageRows.length} of {filteredItems.length}
+        Mode {pagingMode} · showing {pageRows.length} of {sortedItems.length}
         {pagingMode !== "pages" ? ` · loaded pages [${[...loadedPages].sort((a, b) => a - b).join(", ")}]` : ""}
+        {sort ? ` · sort=${sort.columnId}:${sort.direction}` : ""}
       </p>
-      <BrowseItemsView viewMode={viewMode === "calendar" ? "table" : viewMode} items={pageRows} />
+      <BrowseItemsView
+        viewMode={viewMode === "calendar" ? "table" : viewMode}
+        items={pageRows}
+        sort={sort}
+        onSortChange={setSort}
+      />
       {pagingMode === "scroll" ? (
         <BrowseScrollSentinel
           enabled={nextScrollPage !== null}
@@ -665,6 +722,7 @@ function BrowseFiltersExample() {
   const [viewMode, setViewMode] = React.useState<"table" | "grid" | "calendar">("table");
   const [searchValue, setSearchValue] = React.useState("");
   const [status, setStatus] = React.useState("");
+  const [sort, setSort] = React.useState<DataTableSortState>(null);
   const [draft, setDraft] = useBrowseDraft();
   const [items, setItems] = React.useState<HelpBrowseItem[]>([
     createBrowseItem({
@@ -695,6 +753,8 @@ function BrowseFiltersExample() {
     const matchesStatus = !status || item.status === status;
     return matchesSearch && matchesStatus;
   });
+
+  const sortedItems = sortBrowseRows(filteredItems, sort, getHelpBrowseSortValue);
 
   return (
     <div className="showcase-browse-surface">
@@ -732,8 +792,16 @@ function BrowseFiltersExample() {
           setDraft({ name: "", budget: "150", startDate: "2026-07-20", featured: false });
         }}
       />
-      <p className="showcase-browse-meta">View: {viewMode} · {filteredItems.length} of {items.length}</p>
-      <BrowseItemsView viewMode={viewMode} items={filteredItems} />
+      <p className="showcase-browse-meta">
+        View: {viewMode} · {sortedItems.length} of {items.length}
+        {sort ? ` · sort=${sort.columnId}:${sort.direction}` : ""}
+      </p>
+      <BrowseItemsView
+        viewMode={viewMode}
+        items={sortedItems}
+        sort={sort}
+        onSortChange={setSort}
+      />
     </div>
   );
 }
@@ -742,6 +810,7 @@ function BrowseCalendarExample() {
   const [viewMode, setViewMode] = React.useState<"table" | "grid" | "calendar">("calendar");
   const [calendarScope, setCalendarScope] = React.useState<"day" | "month" | "year">("month");
   const [searchValue, setSearchValue] = React.useState("");
+  const [sort, setSort] = React.useState<DataTableSortState>(null);
   const [draft, setDraft] = useBrowseDraft();
   const [items, setItems] = React.useState<HelpBrowseItem[]>([
     createBrowseItem({
@@ -774,6 +843,8 @@ function BrowseCalendarExample() {
     );
   });
 
+  const sortedItems = sortBrowseRows(filteredItems, sort, getHelpBrowseSortValue);
+
   return (
     <div className="showcase-browse-surface">
       <BrowseListControls
@@ -800,9 +871,15 @@ function BrowseCalendarExample() {
       />
       <p className="showcase-browse-meta">
         View: {viewMode}
-        {viewMode === "calendar" ? ` · scope ${calendarScope}` : ""} · {filteredItems.length} of {items.length}
+        {viewMode === "calendar" ? ` · scope ${calendarScope}` : ""} · {sortedItems.length} of {items.length}
+        {sort ? ` · sort=${sort.columnId}:${sort.direction}` : ""}
       </p>
-      <BrowseItemsView viewMode={viewMode} items={filteredItems} />
+      <BrowseItemsView
+        viewMode={viewMode}
+        items={sortedItems}
+        sort={sort}
+        onSortChange={setSort}
+      />
     </div>
   );
 }
@@ -1327,7 +1404,7 @@ export const HELP_GROUPS: HelpGroup[] = [
         id: "browseDefault",
         title: "BrowseListControls (Default)",
         description:
-          "Own the list in page state. Add rows with DateField, CurrencyField, and CheckboxField; render StatusBadge; switch Table/Grid from viewMode.",
+          "Own the list in page state. Add rows with DateField, CurrencyField, and CheckboxField; render StatusBadge; switch Table/Grid from viewMode. Table columns sort when clicked.",
         code: browseExampleCode(`export function Example() {
   const [viewMode, setViewMode] = React.useState("table");
   const [searchValue, setSearchValue] = React.useState("");
@@ -1445,7 +1522,7 @@ export const HELP_GROUPS: HelpGroup[] = [
         id: "browseFilters",
         title: "BrowseListControls (Filters)",
         description:
-          "Same field pattern with filters. StatusBadge shows status; Table/Grid updates from viewMode.",
+          "Same field pattern with filters. StatusBadge shows status; Table/Grid updates from viewMode. Click column headers to sort.",
         code: browseExampleCode(`export function Example() {
   const [viewMode, setViewMode] = React.useState("table");
   const [searchValue, setSearchValue] = React.useState("");
@@ -1509,7 +1586,7 @@ export const HELP_GROUPS: HelpGroup[] = [
         id: "browseCalendar",
         title: "BrowseListControls (Calendar)",
         description:
-          "Table, Grid, and Calendar all switch from viewMode. Rows use DateField values, CurrencyField budgets, CheckboxField featured, and StatusBadge.",
+          "Table, Grid, and Calendar all switch from viewMode. Table columns are sortable; calendar groups by DateField.",
         code: browseExampleCode(`export function Example() {
   const [viewMode, setViewMode] = React.useState("calendar");
   const [calendarScope, setCalendarScope] = React.useState("month");
@@ -1556,7 +1633,7 @@ export const HELP_GROUPS: HelpGroup[] = [
         id: "browsePaging",
         title: "BrowseListControls (Paging)",
         description:
-          "Optional paging with classic pages, lazy per-page load-once cache, or infinite scroll.",
+          "Optional paging with classic pages, lazy per-page load-once cache, or infinite scroll. Sort applies to the full filtered list before page slicing.",
         code: browseExampleCode(`import {
   createBrowseLoadedPages,
   loadBrowsePage,
@@ -1632,7 +1709,7 @@ export function Example() {
         id: "browseSqlPaging",
         title: "BrowseListControls (SQLite paging)",
         description:
-          "Load-once page cache against an in-browser SQLite DB (sql.js): large multi-table join with COUNT(*) + OFFSET/LIMIT. Revisiting a page does not run SELECT again.",
+          "Load-once page cache against in-browser SQLite (sql.js). Click column headers to ORDER BY; sort clears the cache and reloads page 0.",
         code: `import {
   createBrowseLoadedPages,
   loadBrowsePage,
