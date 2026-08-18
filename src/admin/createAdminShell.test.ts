@@ -165,3 +165,66 @@ test("createAdminShell can hide content refresh", () => {
 
   assert.equal(findByClass(element, "content-refresh-btn"), null);
 });
+
+test("createAdminShell supports action navigation without a router", () => {
+  const react = createFakeReact();
+  const AdminShell = createAdminShell(react);
+  let selected = 0;
+
+  const element = AdminShell({
+    navItems: [
+      {
+        id: "overview",
+        label: "Overview",
+        icon: "⌂",
+        active: true,
+        onSelect: () => {
+          selected += 1;
+        },
+      },
+    ],
+    logo: "Logo",
+    userName: "Admin",
+    userEmail: "admin@lunarq.com",
+    children: "Content",
+  }) as FakeNode;
+
+  const navItem = findByClass(element, "nav-item");
+  assert.equal(navItem?.type, "button");
+  assert.equal(navItem?.props.className, "nav-item active");
+  assert.equal(navItem?.props["aria-current"], "page");
+  (navItem?.props.onClick as () => void)();
+  assert.equal(selected, 1);
+});
+
+test("createAdminShell renders optional extension slots and user action", () => {
+  const react = createFakeReact();
+  const AdminShell = createAdminShell(react, "FakeNavLink");
+  let openedProfile = 0;
+
+  const element = AdminShell({
+    navItems: [{ to: "/app", end: true, label: "Overview", icon: "⌂" }],
+    logo: "Logo",
+    mainBanner: "System admin",
+    sidebarActions: "Create tenant",
+    topBarActions: "Session",
+    userName: "Admin",
+    userEmail: "admin@lunarq.com",
+    userMeta: "System tenant",
+    onUserClick: () => {
+      openedProfile += 1;
+    },
+    userActionLabel: "Open profile",
+    children: "Content",
+  }) as FakeNode;
+
+  assert.equal(findByClass(element, "admin-main-banner")?.children[0], "System admin");
+  assert.equal(findByClass(element, "sidebar-actions")?.children[0], "Create tenant");
+  assert.equal(findByClass(element, "user-meta")?.children[0], "System tenant");
+
+  const userAction = findByClass(element, "user-info-button");
+  assert.equal(userAction?.type, "button");
+  assert.equal(userAction?.props["aria-label"], "Open profile");
+  (userAction?.props.onClick as () => void)();
+  assert.equal(openedProfile, 1);
+});

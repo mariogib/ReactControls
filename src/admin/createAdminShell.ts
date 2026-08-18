@@ -32,11 +32,21 @@ type InternalAdminNavItem = {
   href?: never;
 };
 
+type ActionAdminNavItem = {
+  id: string;
+  onSelect: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  to?: never;
+  href?: never;
+  end?: never;
+};
+
 export type AdminNavLeaf = {
   label: string;
   /** Glyph, emoji, or Fluent SVG node (`createFluentNavIcons`). */
   icon: ReactNodeLike;
-} & (InternalAdminNavItem | ExternalAdminNavItem);
+} & (InternalAdminNavItem | ExternalAdminNavItem | ActionAdminNavItem);
 
 export type AdminNavGroup = {
   label: string;
@@ -59,9 +69,19 @@ export interface AdminShellProps {
    * (e.g. status badges, ThemeButton).
    */
   topBarActions?: ReactNodeLike;
+  /** Optional banner rendered above the top bar in the main content column. */
+  mainBanner?: ReactNodeLike;
+  /** Optional controls rendered between sidebar navigation and the user block. */
+  sidebarActions?: ReactNodeLike;
   contentOverlay?: ReactNodeLike;
   userName: string;
   userEmail: string;
+  /** Optional supporting content shown below the user email (for example, tenant name). */
+  userMeta?: ReactNodeLike;
+  /** When provided, the sidebar user block becomes an accessible button. */
+  onUserClick?: () => void;
+  /** Accessible label for the clickable user block. Defaults to `Open user profile`. */
+  userActionLabel?: string;
   /** When provided, shows a Sign Out control under the sidebar user block. */
   onSignOut?: () => void | Promise<void>;
   children: ReactNodeLike;
@@ -96,15 +116,20 @@ function classNames(...parts: Array<string | false | null | undefined>): string 
   return parts.filter(Boolean).join(" ");
 }
 
-export function createAdminShell(react: ReactElementApi, NavLink: NavLinkComponent) {
+export function createAdminShell(react: ReactElementApi, NavLink?: NavLinkComponent) {
   return function AdminShell({
     navItems,
     logo,
     topBarContent = null,
     topBarActions = null,
+    mainBanner = null,
+    sidebarActions = null,
     contentOverlay = null,
     userName,
     userEmail,
+    userMeta = null,
+    onUserClick,
+    userActionLabel = "Open user profile",
     onSignOut,
     children,
     sidebarOpen,
@@ -155,7 +180,29 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
         );
       }
 
+      if ("onSelect" in item) {
+        const actionItem = item as AdminNavLeaf & ActionAdminNavItem;
+        return react.createElement(
+          "button",
+          {
+            key: `${keyPrefix}${actionItem.id}`,
+            type: "button",
+            className: actionItem.active ? "nav-item active" : "nav-item",
+            title: item.label,
+            "aria-current": actionItem.active ? "page" : undefined,
+            disabled: actionItem.disabled,
+            onClick: actionItem.onSelect,
+          },
+          ...sharedChildren,
+        );
+      }
+
       const internalItem = item as AdminNavLeaf & InternalAdminNavItem;
+      if (!NavLink) {
+        throw new Error(
+          `AdminShell navigation item "${item.label}" requires a NavLink adapter.`,
+        );
+      }
       return react.createElement(
         NavLink,
         {
@@ -233,12 +280,24 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
           ),
         ),
         react.createElement("nav", { className: "sidebar-nav" }, ...navContent),
+        sidebarActions
+          ? react.createElement("div", { className: "sidebar-actions" }, sidebarActions)
+          : null,
         react.createElement(
           "div",
           { className: "sidebar-user" },
           react.createElement(
-            "div",
-            { className: "user-info" },
+            onUserClick ? "button" : "div",
+            {
+              className: classNames("user-info", onUserClick && "user-info-button"),
+              ...(onUserClick
+                ? {
+                    type: "button",
+                    onClick: onUserClick,
+                    "aria-label": userActionLabel,
+                  }
+                : {}),
+            },
             react.createElement(
               "div",
               { className: "user-avatar" },
@@ -249,6 +308,9 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
             { className: "user-details" },
             react.createElement("div", { className: "user-name" }, userName),
             react.createElement("div", { className: "user-email" }, userEmail),
+              userMeta
+                ? react.createElement("div", { className: "user-meta" }, userMeta)
+                : null,
           ),
         ),
         onSignOut
@@ -263,6 +325,9 @@ export function createAdminShell(react: ReactElementApi, NavLink: NavLinkCompone
       react.createElement(
         "div",
         { className: "main-content" },
+        mainBanner
+          ? react.createElement("div", { className: "admin-main-banner" }, mainBanner)
+          : null,
         react.createElement(
           "header",
           { className: "top-bar" },
