@@ -80,11 +80,12 @@ export function createOidcRuntimeConfig({
 {
   const normalizedBasePath = normalizeBaseUrl(baseUrl);
   const redirectPath = `${normalizedBasePath}/auth/callback`;
+  const postLogoutPath = `${normalizedBasePath}/`;
 
   const resolvedRedirectUri = resolveLoopbackUri(redirectUri, redirectPath, origin, rewriteLoopbackUris);
   const resolvedPostLogoutRedirectUri = resolveLoopbackUri(
-    postLogoutRedirectUri ?? resolvedRedirectUri,
-    redirectPath,
+    postLogoutRedirectUri,
+    postLogoutPath,
     origin,
     rewriteLoopbackUris);
 

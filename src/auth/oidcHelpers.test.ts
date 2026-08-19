@@ -21,7 +21,7 @@ test("createOidcRuntimeConfig builds callback URIs with explicit base and origin
   assert.equal(config.clientId, "client");
   assert.equal(config.scope, "openid profile");
   assert.equal(config.redirectUri, "https://example.test/DigitalPrize2/auth/callback");
-  assert.equal(config.postLogoutRedirectUri, "https://example.test/DigitalPrize2/auth/callback");
+  assert.equal(config.postLogoutRedirectUri, "https://example.test/DigitalPrize2/");
 });
 
 test("createOidcRuntimeConfig rewrites localhost callback host/port when enabled", () => {

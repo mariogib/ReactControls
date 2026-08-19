@@ -6,6 +6,7 @@ import {
   resolveApiBaseUrl,
   resolveApiOrigin,
   resolveAuthCallbackUrl,
+  resolvePostLogoutRedirectUrl,
 } from "./runtimeUrls.js";
 
 test("getApiPathFromAppBase maps app virtual directory to api virtual directory", () => {
@@ -63,5 +64,22 @@ test("resolveAuthCallbackUrl stays on the web origin", () => {
       "/DigitalPrize2-control/",
     ),
     "http://localhost:5173/DigitalPrize2-control/auth/callback",
+  );
+});
+
+test("resolvePostLogoutRedirectUrl uses the app base path", () => {
+  assert.equal(
+    resolvePostLogoutRedirectUrl(
+      { hostname: "acme-prizes.ngrok.app", port: "", protocol: "https:" },
+      "/DigitalPrize2/",
+    ),
+    "https://acme-prizes.ngrok.app/DigitalPrize2/",
+  );
+  assert.equal(
+    resolvePostLogoutRedirectUrl(
+      { hostname: "localhost", port: "5173", protocol: "http:" },
+      "/",
+    ),
+    "http://localhost:5173/",
   );
 });

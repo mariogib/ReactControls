@@ -62,3 +62,12 @@ export function resolveAuthCallbackUrl(
     appBasePath === "/" ? "/auth/callback" : `${appBasePath}/auth/callback`;
   return `${location.protocol}//${location.hostname}${location.port ? `:${location.port}` : ""}${callbackPath}`;
 }
+
+export function resolvePostLogoutRedirectUrl(
+  location: Pick<URL, "hostname" | "port" | "protocol">,
+  appBaseUrl: string,
+): string {
+  const appBasePath = normalizeAppBasePath(appBaseUrl);
+  const origin = `${location.protocol}//${location.hostname}${location.port ? `:${location.port}` : ""}`;
+  return appBasePath === "/" ? `${origin}/` : `${origin}${appBasePath}/`;
+}
