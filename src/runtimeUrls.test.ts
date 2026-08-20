@@ -3,6 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   getApiPathFromAppBase,
+  resolveAdminAppUrl,
+  resolveAdminProfileUrl,
   resolveApiBaseUrl,
   resolveApiOrigin,
   resolveAuthCallbackUrl,
@@ -81,5 +83,16 @@ test("resolvePostLogoutRedirectUrl uses the app base path", () => {
       "/",
     ),
     "http://localhost:5173/",
+  );
+});
+
+test("resolveAdminAppUrl uses the current origin and /Admin", () => {
+  assert.equal(
+    resolveAdminAppUrl({ hostname: "acme-prizes.ngrok.app", port: "", protocol: "https:" }),
+    "https://acme-prizes.ngrok.app/Admin",
+  );
+  assert.equal(
+    resolveAdminProfileUrl({ hostname: "acme-prizes.ngrok.app", port: "", protocol: "https:" }),
+    "https://acme-prizes.ngrok.app/Admin/profile",
   );
 });

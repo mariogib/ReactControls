@@ -71,3 +71,16 @@ export function resolvePostLogoutRedirectUrl(
   const origin = `${location.protocol}//${location.hostname}${location.port ? `:${location.port}` : ""}`;
   return appBasePath === "/" ? `${origin}/` : `${origin}${appBasePath}/`;
 }
+
+export function resolveAdminAppUrl(
+  location: Pick<URL, "hostname" | "port" | "protocol">,
+): string {
+  const origin = `${location.protocol}//${location.hostname}${location.port ? `:${location.port}` : ""}`;
+  return `${origin}/Admin`;
+}
+
+export function resolveAdminProfileUrl(
+  location: Pick<URL, "hostname" | "port" | "protocol">,
+): string {
+  return `${resolveAdminAppUrl(location)}/profile`;
+}
