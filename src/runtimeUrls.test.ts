@@ -11,6 +11,14 @@ import {
   resolvePostLogoutRedirectUrl,
 } from "./runtimeUrls.js";
 
+const WORLDPLAY_ADMIN_HOST_TO_API_HOST = {
+  "worldplayadmin.ngrok.app": "worldplayadminapi.ngrok.app",
+} as const;
+
+const LUNARQ_ADMIN_HOST_TO_API_HOST = {
+  "lunarqadmin.ngrok.app": "lunarqadminapi.ngrok.app",
+} as const;
+
 test("getApiPathFromAppBase maps app virtual directory to api virtual directory", () => {
   assert.equal(getApiPathFromAppBase("/DigitalPrize2/"), "/DigitalPrize2-api");
   assert.equal(getApiPathFromAppBase("/DigitalPrize2-control/"), "/DigitalPrize2-control-api");
@@ -31,10 +39,36 @@ test("resolveApiOrigin maps local admin port to api port", () => {
   );
 });
 
-test("resolveApiOrigin maps ngrok admin host to api host", () => {
+test("resolveApiOrigin maps ngrok admin host using caller-provided host map", () => {
   assert.equal(
-    resolveApiOrigin({ hostname: "lunarqadmin.ngrok.app", port: "", protocol: "https:" }),
+    resolveApiOrigin(
+      { hostname: "lunarqadmin.ngrok.app", port: "", protocol: "https:" },
+      LUNARQ_ADMIN_HOST_TO_API_HOST,
+    ),
     "https://lunarqadminapi.ngrok.app",
+  );
+  assert.equal(
+    resolveApiOrigin(
+      { hostname: "worldplayadmin.ngrok.app", port: "", protocol: "https:" },
+      WORLDPLAY_ADMIN_HOST_TO_API_HOST,
+    ),
+    "https://worldplayadminapi.ngrok.app",
+  );
+  assert.equal(
+    resolveApiOrigin({ hostname: "worldplayadmin.ngrok.app", port: "", protocol: "https:" }),
+    "https://worldplayadmin.ngrok.app",
+  );
+});
+
+test("resolveApiBaseUrl maps worldplayadmin control app using caller-provided host map", () => {
+  assert.equal(
+    resolveApiBaseUrl(
+      { hostname: "worldplayadmin.ngrok.app", port: "", protocol: "https:" },
+      "/DigitalPrize2-control/",
+      undefined,
+      WORLDPLAY_ADMIN_HOST_TO_API_HOST,
+    ),
+    "https://worldplayadminapi.ngrok.app/DigitalPrize2-control-api",
   );
 });
 

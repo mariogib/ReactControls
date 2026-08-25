@@ -73,7 +73,7 @@ export function createAuthCallback(
               if (authErrorDescription) {
                 landingParams.set("authErrorDescription", authErrorDescription);
               }
-              window.location.replace(`${normalizedBaseUrl}?${landingParams.toString()}`);
+              window.location.replace(`${resolvedAppPath}?${landingParams.toString()}`);
               return;
             }
           }

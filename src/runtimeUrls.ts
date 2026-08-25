@@ -1,9 +1,7 @@
 const LOCAL_WEB_PORT = "5173";
 const LOCAL_API_PORT = "5206";
 
-const ADMIN_HOST_TO_API_HOST: Record<string, string> = {
-  "lunarqadmin.ngrok.app": "lunarqadminapi.ngrok.app",
-};
+export type AdminHostToApiHostMap = Readonly<Record<string, string>>;
 
 export function normalizeAppBasePath(baseUrl: string): string {
   if (!baseUrl || baseUrl === "/") {
@@ -23,14 +21,17 @@ export function getApiPathFromAppBase(appBasePath: string): string {
   return normalized === "/" ? "/api" : `${normalized}-api`;
 }
 
-export function resolveApiOrigin(location: Pick<URL, "hostname" | "port" | "protocol">): string {
+export function resolveApiOrigin(
+  location: Pick<URL, "hostname" | "port" | "protocol">,
+  adminHostToApiHost: AdminHostToApiHostMap = {},
+): string {
   const { hostname, port, protocol } = location;
 
   if (port === LOCAL_WEB_PORT) {
     return `${protocol}//${hostname}:${LOCAL_API_PORT}`;
   }
 
-  const apiHost = ADMIN_HOST_TO_API_HOST[hostname];
+  const apiHost = adminHostToApiHost[hostname];
   if (apiHost) {
     return `${protocol}//${apiHost}`;
   }
@@ -42,6 +43,7 @@ export function resolveApiBaseUrl(
   location: Pick<URL, "hostname" | "port" | "protocol">,
   appBaseUrl: string,
   configuredApiBase?: string,
+  adminHostToApiHost: AdminHostToApiHostMap = {},
 ): string {
   const configured = configuredApiBase?.trim();
   if (configured) {
@@ -49,7 +51,7 @@ export function resolveApiBaseUrl(
   }
 
   const apiPath = getApiPathFromAppBase(appBaseUrl);
-  const apiOrigin = resolveApiOrigin(location);
+  const apiOrigin = resolveApiOrigin(location, adminHostToApiHost);
   return `${apiOrigin}${apiPath}`.replace(/\/$/, "");
 }
 
