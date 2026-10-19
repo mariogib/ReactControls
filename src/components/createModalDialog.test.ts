@@ -47,6 +47,29 @@ test("createModalDialog renders subtitle when provided", () => {
   assert.equal(subtitle.children[0], "Sub");
 });
 
+test("createModalDialog closes from the overlay only when closeOnOverlayClick is enabled", () => {
+  const react = createFakeReact();
+  const ModalDialog = createModalDialog(react);
+  const onClose = () => {};
+
+  const closedByOverlay = ModalDialog({ title: "Title", children: "Body", onClose });
+  assert.equal(closedByOverlay.props.onClick, onClose);
+
+  const staysOpen = ModalDialog({
+    title: "Title",
+    children: "Body",
+    onClose,
+    closeOnOverlayClick: false,
+  });
+  assert.equal(staysOpen.props.onClick, undefined);
+
+  const content = staysOpen.children[0];
+  const header = content.children[0];
+  const actions = header.children[1];
+  const closeBtn = actions.children[1];
+  assert.equal(closeBtn.props.onClick, onClose);
+});
+
 test("createModalDialog shows close button when onClose provided", () => {
   const react = createFakeReact();
   const ModalDialog = createModalDialog(react);

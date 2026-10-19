@@ -1,4 +1,6 @@
+import * as React from "react";
 import { useEffect, useState } from "react";
+import { createFluentNavIcon, createFluentNavIcons } from "../admin/fluentNavIcons.js";
 
 export interface MaintenanceScreenProps {
   apiEndpoint: string;
@@ -6,6 +8,21 @@ export interface MaintenanceScreenProps {
   checkAttempts: number;
   error?: string;
 }
+
+const navIcons = createFluentNavIcons(React);
+const refreshIcon = createFluentNavIcon(
+  React,
+  ["M15.5 6.5A6.5 6.5 0 1 0 16 10", "M13.25 3.75 15.5 6.5 12.75 7.75"],
+  "Auto-recovery",
+);
+const tipIcon = createFluentNavIcon(
+  React,
+  [
+    "M10 3.5a4.75 4.75 0 0 1 2.85 8.55c-.55.4-.85.95-.85 1.55V14.5H8v-.9c0-.6-.3-1.15-.85-1.55A4.75 4.75 0 0 1 10 3.5Z",
+    "M8.25 16.25h3.5",
+  ],
+  "Tip",
+);
 
 export function MaintenanceScreen({
   apiEndpoint,
@@ -33,7 +50,9 @@ export function MaintenanceScreen({
     <div className="maintenance-page">
       <div className="maintenance-container">
         <div className="maintenance-content">
-          <div className="maintenance-icon">🔧</div>
+          <div className="maintenance-icon" aria-hidden="true">
+            {navIcons.maintenance}
+          </div>
 
           <h1 className="maintenance-title">Services Under Maintenance</h1>
 
@@ -68,7 +87,9 @@ export function MaintenanceScreen({
 
           <div className="info-boxes">
             <div className="info-box info-box-primary">
-              <div className="info-box-icon">🔄</div>
+              <div className="info-box-icon" aria-hidden="true">
+                {refreshIcon}
+              </div>
               <div className="info-box-content">
                 <h3 className="info-box-title">Auto-Recovery</h3>
                 <p className="info-box-text">
@@ -78,7 +99,9 @@ export function MaintenanceScreen({
             </div>
 
             <div className="info-box info-box-secondary">
-              <div className="info-box-icon">💡</div>
+              <div className="info-box-icon" aria-hidden="true">
+                {tipIcon}
+              </div>
               <div className="info-box-content">
                 <h3 className="info-box-title">What to Do?</h3>
                 <p className="info-box-text">

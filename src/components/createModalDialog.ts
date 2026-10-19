@@ -10,6 +10,8 @@ export interface ModalDialogProps {
   children: ReactNodeLike;
   footer?: ReactNodeLike;
   onClose?: () => void;
+  /** When false, clicking the backdrop does not call onClose. */
+  closeOnOverlayClick?: boolean;
   contentClassName?: string;
   bodyClassName?: string;
   headerClassName?: string;
@@ -28,6 +30,7 @@ export function createModalDialog(react: ReactElementApi) {
     children,
     footer,
     onClose,
+    closeOnOverlayClick = true,
     contentClassName = "",
     bodyClassName = "",
     headerClassName = "",
@@ -43,7 +46,7 @@ export function createModalDialog(react: ReactElementApi) {
       "div",
       {
         className: "modal-overlay",
-        onClick: onClose,
+        onClick: closeOnOverlayClick ? onClose : undefined,
         role: "dialog",
         "aria-modal": true,
       },

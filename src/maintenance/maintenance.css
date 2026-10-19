@@ -31,9 +31,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  color: var(--bg-color);
   margin: 0 auto 2rem;
   box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.maintenance-icon .fluent-nav-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: inherit;
 }
 
 .maintenance-title {
@@ -168,8 +174,23 @@
 }
 
 .maintenance-page .info-box-icon {
-  font-size: 1.5rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--primary-color);
+}
+
+.maintenance-page .info-box-secondary .info-box-icon {
+  color: var(--secondary-color);
+}
+
+.maintenance-page .info-box-icon .fluent-nav-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: inherit;
 }
 
 .maintenance-page .info-box-content {
