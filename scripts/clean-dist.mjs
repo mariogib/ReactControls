@@ -6,5 +6,10 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(scriptDirectory, "..");
 const outputDirectory = path.join(packageRoot, "dist");
 
-await rm(outputDirectory, { force: true, recursive: true });
+await rm(outputDirectory, {
+  force: true,
+  recursive: true,
+  maxRetries: 10,
+  retryDelay: 100,
+});
 await mkdir(outputDirectory, { recursive: true });
